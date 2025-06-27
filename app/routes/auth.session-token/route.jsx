@@ -1,29 +1,27 @@
 import { redirect } from "@remix-run/node";
-import jwt from "jsonwebtoken"; // Para decodificar o validar el token
+import jwt from "jsonwebtoken";
 
 export async function loader({ request }) {
   const url = new URL(request.url);
   const sessionToken = url.searchParams.get("session");
 
   if (!sessionToken) {
-    return redirect("/error?message=session-token-missing"); // Redirige a una página de error si falta el token
+    return redirect("/auth/login");
   }
 
   try {
-    // Decodifica el token (si es necesario)
     const decodedToken = jwt.decode(sessionToken);
-    console.log("Decoded token:", decodedToken);
 
-    // Aquí podrías agregar lógica adicional como guardar el token o verificar datos
+    // Valida datos del token (opcional)
+    if (!decodedToken || !decodedToken.shop) {
+      return redirect("/auth/login");
+    }
 
-    // Redirige a la página principal de tu app
+    console.log("Token válido:", decodedToken);
+
     return redirect("/app");
   } catch (error) {
-    console.error("Error procesando el token:", error);
-    return redirect("/error?message=invalid-session-token");
+    console.error("Error procesando token:", error);
+    return redirect("/auth/login");
   }
-}
-
-export default function SessionTokenHandler() {
-  return null; // No necesitas devolver contenido ya que estás redirigiendo
 }
