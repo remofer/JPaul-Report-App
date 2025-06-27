@@ -13,6 +13,13 @@ export default async function handleRequest(
   responseHeaders,
   remixContext,
 ) {
+  // Log de solicitud
+  console.log("Incoming request:", {
+    url: request.url,
+    method: request.method,
+    headers: Object.fromEntries(request.headers),
+  });
+
   addDocumentResponseHeaders(request, responseHeaders);
   const userAgent = request.headers.get("user-agent");
   const callbackName = isbot(userAgent ?? "") ? "onAllReady" : "onShellReady";
@@ -39,7 +46,7 @@ export default async function handleRequest(
         },
         onError(error) {
           responseStatusCode = 500;
-          console.error(error);
+          console.error("React rendering error:", error);
         },
       },
     );
