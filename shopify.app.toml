@@ -1,0 +1,23 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+client_id = "50ff88a57d12509b08b03a5930423629"
+name = "JPaul Report"
+handle = "jpaul-report"
+application_url = "https://partnerships-guitars-dimension-survivor.trycloudflare.com"
+embedded = true
+
+[build]
+include_config_on_deploy = true
+automatically_update_urls_on_dev = true
+
+[webhooks]
+api_version = "2025-04"
+
+[access_scopes]
+scopes = "write_inventory, read_inventory, read_locations, read_products"
+
+[auth]
+redirect_urls = ["https://partnerships-guitars-dimension-survivor.trycloudflare.com/auth/callback", "https://partnerships-guitars-dimension-survivor.trycloudflare.com/auth/shopify/callback", "https://partnerships-guitars-dimension-survivor.trycloudflare.com/api/auth/callback"]
+
+[pos]
+embedded = false
