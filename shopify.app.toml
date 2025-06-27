@@ -3,7 +3,7 @@
 client_id = "50ff88a57d12509b08b03a5930423629"
 name = "JPaul Report"
 handle = "jpaul-report"
-application_url = "https://partnerships-guitars-dimension-survivor.trycloudflare.com"
+application_url = "https://j-paul-report-app.vercel.app/"
 embedded = true
 
 [build]
@@ -17,7 +17,7 @@ api_version = "2025-04"
 scopes = "write_inventory, read_inventory, read_locations, read_products"
 
 [auth]
-redirect_urls = ["https://partnerships-guitars-dimension-survivor.trycloudflare.com/auth/callback", "https://partnerships-guitars-dimension-survivor.trycloudflare.com/auth/shopify/callback", "https://partnerships-guitars-dimension-survivor.trycloudflare.com/api/auth/callback"]
+redirect_urls = ["https://j-paul-report-app.vercel.app/auth/callback", "https://j-paul-report-app.vercel.app/auth/shopify/callback", "https://j-paul-report-app.vercel.app/api/auth/callback"]
 
 [pos]
 embedded = false
