@@ -1,44 +1,29 @@
-import { shopifyApi, LATEST_API_VERSION } from "@shopify/shopify-api";
+import { redirect } from "@remix-run/node";
+import jwt from "jsonwebtoken"; // Para decodificar o validar el token
 
-const shopify = shopifyApi({
-  apiKey: process.env.SHOPIFY_API_KEY,
-  apiSecretKey: process.env.SHOPIFY_API_SECRET,
-  scopes: ["read_products", "write_products"],
-  hostName: process.env.HOST.replace(/https?:\/\//, ""),
-  isEmbeddedApp: true,
-  apiVersion: LATEST_API_VERSION,
-});
-
-// Función para autenticar solicitudes
-export async function authenticate(request) {
-  const sessionToken = request.headers.get("Authorization")?.replace("Bearer ", "");
+export async function loader({ request }) {
+  const url = new URL(request.url);
+  const sessionToken = url.searchParams.get("session");
 
   if (!sessionToken) {
-    throw new Error("Authentication failed: No session token provided");
+    return redirect("/error?message=session-token-missing"); // Redirige a una página de error si falta el token
   }
 
   try {
-    const decodedSession = await shopify.session.decodeSession(sessionToken);
-    if (!decodedSession || !decodedSession.shop) {
-      throw new Error("Invalid session token");
-    }
+    // Decodifica el token (si es necesario)
+    const decodedToken = jwt.decode(sessionToken);
+    console.log("Decoded token:", decodedToken);
 
-    return decodedSession;
+    // Aquí podrías agregar lógica adicional como guardar el token o verificar datos
+
+    // Redirige a la página principal de tu app
+    return redirect("/app");
   } catch (error) {
-    throw new Error(`Authentication error: ${error.message}`);
+    console.error("Error procesando el token:", error);
+    return redirect("/error?message=invalid-session-token");
   }
 }
 
-// Función para manejar el login
-export async function login(request) {
-  const url = new URL(request.url);
-  const shop = url.searchParams.get("shop");
-
-  if (!shop) {
-    return { shop: "Shop domain is required" };
-  }
-
-  const authUrl = await shopify.auth.beginAuth(request, shop, "/auth/callback", false);
-
-  return Response.redirect(authUrl);
+export default function SessionTokenHandler() {
+  return null; // No necesitas devolver contenido ya que estás redirigiendo
 }
