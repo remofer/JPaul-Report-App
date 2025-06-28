@@ -8,10 +8,18 @@ import {
 import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prisma";
 import prisma from "./db.server";
 
+if (!process.env.SHOPIFY_API_KEY || !process.env.SHOPIFY_API_SECRET) {
+  throw new Error("SHOPIFY_API_KEY and SHOPIFY_API_SECRET must be defined in environment variables.");
+}
+
+if (!process.env.HOST) {
+  throw new Error("HOST must be defined in environment variables.");
+}
+
 const shopify = shopifyApp({
   apiKey: process.env.SHOPIFY_API_KEY,
   apiSecretKey: process.env.SHOPIFY_API_SECRET || "",
-  apiVersion: ApiVersion.January25,
+  apiVersion: ApiVersion.April25, // Última versión soportada
   scopes: process.env.SCOPES?.split(","),
   hostName: process.env.HOST.replace(/https?:\/\//, ""),
   isEmbeddedApp: true,
@@ -29,30 +37,20 @@ const shopify = shopifyApp({
 });
 
 export default shopify;
-export const apiVersion = ApiVersion.January25;
+export const apiVersion = ApiVersion.April25;
 export const addDocumentResponseHeaders = shopify.addDocumentResponseHeaders;
 export const authenticate = shopify.authenticate;
 export const unauthenticated = shopify.unauthenticated;
+
 export const login = async (request, shop, redirectUri, isOnline) => {
-  console.log("Shop:", shop);
-console.log("Redirect URI:", redirectUri);
-console.log("Is Online:", isOnline);
-console.log("Shopify instance:", shopify);
-console.log("Shopify auth methods:", shopify.auth);
-
-  try {
-    const authUrl = await shopify.auth.begin({
-      shop,
-      callbackPath: redirectUri || "/auth/callback",
-      isOnline: isOnline || false,
-    });
-
-    console.log("Generated auth URL:", authUrl);
-    return authUrl;
-  } catch (error) {
-    console.error("Error during login:", error);
-    throw new Error("Authentication process failed.");
-  }
+  const authUrl = await shopify.auth.begin({
+    shop,
+    callbackPath: redirectUri || "/auth/callback",
+    isOnline: isOnline || false,
+  });
+  // Asegúrate que authUrl es string
+  console.log("Auth URL from login:", authUrl);
+  return authUrl;
 };
 export const registerWebhooks = shopify.registerWebhooks;
 export const sessionStorage = shopify.sessionStorage;

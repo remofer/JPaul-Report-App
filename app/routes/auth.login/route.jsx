@@ -32,6 +32,7 @@ export const action = async ({ request }) => {
   try {
     console.log("Authenticating for shop:", shop);
     const authUrl = await login(request, shop, "/auth/callback", false);
+    console.log("Redirecting to:", authUrl);
     return redirect(authUrl);
   } catch (error) {
     console.error("Authentication failed:", error);
@@ -50,23 +51,20 @@ export default function Auth() {
     <PolarisAppProvider i18n={loaderData.polarisTranslations}>
       <Page>
         <Card>
-          <Form method="post">
-            <FormLayout>
-              <Text variant="headingMd" as="h2">
-                Log in
-              </Text>
-              <TextField
-                type="text"
-                name="shop"
-                label="Shop domain"
-                helpText="example.myshopify.com"
-                value={shop}
-                onChange={setShop}
-                error={actionData?.errors?.shop}
-              />
-              <Button submit>Log in</Button>
-            </FormLayout>
-          </Form>
+        <Form method="get" action="/auth">
+      <label>
+        Shop domain:
+        <input
+          type="text"
+          name="shop"
+          value={shop}
+          onChange={e => setShop(e.target.value)}
+          placeholder="example.myshopify.com"
+          required
+        />
+      </label>
+      <button type="submit">Log in</button>
+    </Form>
         </Card>
       </Page>
     </PolarisAppProvider>
