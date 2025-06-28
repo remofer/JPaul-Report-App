@@ -22,7 +22,7 @@ export default function Auth() {
     <PolarisAppProvider i18n={polarisTranslations}>
       <Page>
         <Card>
-          <form method="post" action="/auth.login.server">
+          <form method="post" action="/auth">
             <FormLayout>
               <Text variant="headingMd" as="h2">
                 Log in
