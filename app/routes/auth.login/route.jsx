@@ -1,6 +1,6 @@
 import { redirect } from "@remix-run/node";
 import { useState } from "react";
-import { Form, useLoaderData, useActionData } from "@remix-run/react";
+import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import {
   AppProvider as PolarisAppProvider,
   Button,
@@ -12,28 +12,36 @@ import {
 } from "@shopify/polaris";
 import polarisTranslations from "@shopify/polaris/locales/en.json";
 import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
-import { login } from "../../shopify.server"; // Cambiado desde `login`
+import { login } from "../../shopify.server";
+import { loginErrorMessage } from "./error.server";
 
 export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 
 export const loader = async ({ request }) => {
+  const errors = loginErrorMessage(await login(request));
+
+  return { errors, polarisTranslations };
+};
+
+export const action = async ({ request }) => {
   const url = new URL(request.url);
   const shop = url.searchParams.get("shop");
-  const topLevel = url.searchParams.get("top_level");
 
-  if (topLevel === "true" && shop) {
-    const authUrl = await login.getAuthUrl(shop);
-    return redirect(authUrl);
+  if (!shop) {
+    return {
+      errors: { shop: "Shop domain is required" },
+    };
   }
 
-  return { polarisTranslations };
+  const authUrl = await login.beginAuth(request, shop, "/auth/callback", false);
+  return redirect(authUrl);
 };
 
 export default function Auth() {
   const loaderData = useLoaderData();
   const actionData = useActionData();
   const [shop, setShop] = useState("");
-  const errors = actionData?.errors || loaderData?.errors;
+  const { errors } = actionData || loaderData;
 
   return (
     <PolarisAppProvider i18n={loaderData.polarisTranslations}>
