@@ -10,10 +10,15 @@ export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 
 export const loader = async ({ request }) => {
   try {
-    await authenticate.admin(request);
+    const session = await authenticate.admin(request);
+
+    if (!session) {
+      throw redirect("/auth/login?top_level=true");
+    }
+
     return { apiKey: process.env.SHOPIFY_API_KEY || "" };
-  } catch {
-    // Si no está autenticado, redirige al login con query para login top-level
+  } catch (error) {
+    console.error("App Loader Error:", error);
     throw redirect("/auth/login?top_level=true");
   }
 };
@@ -22,7 +27,6 @@ export default function App() {
   const { apiKey } = useLoaderData();
 
   useEffect(() => {
-    // Si estamos en iframe, forzamos que la ventana padre cargue esta URL
     if (window.top !== window.self) {
       window.top.location.href = window.location.href;
     }

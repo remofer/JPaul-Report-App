@@ -1,5 +1,6 @@
+import { redirect } from "@remix-run/node";
 import { useState } from "react";
-import { Form, useActionData, useLoaderData } from "@remix-run/react";
+import { Form, useLoaderData, useActionData } from "@remix-run/react";
 import {
   AppProvider as PolarisAppProvider,
   Button,
@@ -11,30 +12,28 @@ import {
 } from "@shopify/polaris";
 import polarisTranslations from "@shopify/polaris/locales/en.json";
 import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
-import { login } from "../../shopify.server";
-import { loginErrorMessage } from "./error.server";
+import { shopifyAuth } from "../../shopify.server"; // Cambiado desde `login`
 
 export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 
 export const loader = async ({ request }) => {
-  const errors = loginErrorMessage(await login(request));
+  const url = new URL(request.url);
+  const shop = url.searchParams.get("shop");
+  const topLevel = url.searchParams.get("top_level");
 
-  return { errors, polarisTranslations };
-};
+  if (topLevel === "true" && shop) {
+    const authUrl = await shopifyAuth.getAuthUrl(shop);
+    return redirect(authUrl);
+  }
 
-export const action = async ({ request }) => {
-  const errors = loginErrorMessage(await login(request));
-
-  return {
-    errors,
-  };
+  return { polarisTranslations };
 };
 
 export default function Auth() {
   const loaderData = useLoaderData();
   const actionData = useActionData();
   const [shop, setShop] = useState("");
-  const { errors } = actionData || loaderData;
+  const errors = actionData?.errors || loaderData?.errors;
 
   return (
     <PolarisAppProvider i18n={loaderData.polarisTranslations}>
@@ -53,7 +52,7 @@ export default function Auth() {
                 value={shop}
                 onChange={setShop}
                 autoComplete="on"
-                error={errors.shop}
+                error={errors?.shop}
               />
               <Button submit>Log in</Button>
             </FormLayout>
