@@ -45,8 +45,10 @@ export const unauthenticated = shopify.unauthenticated;
 export const login = async (request, shop, redirectUri, isOnline) => {
   const authUrl = await shopify.auth.begin({
     shop,
-    callbackPath: redirectUri || "/auth/callback",
-    isOnline: isOnline || false,
+    callbackPath: "/auth/callback",
+    isOnline: false,
+    rawRequest: request,
+    rawResponse: undefined, // En Remix no se pasa res
   });
   // Asegúrate que authUrl es string
   console.log("Auth URL from login:", authUrl);

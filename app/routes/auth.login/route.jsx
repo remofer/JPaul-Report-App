@@ -23,22 +23,19 @@ export const action = async ({ request }) => {
   const formData = await request.formData();
   const shop = formData.get("shop");
 
-  if (!shop || !shop.endsWith(".myshopify.com")) {
-    return {
-      errors: { shop: "Please enter a valid Shopify domain (e.g., example.myshopify.com)." },
-    };
-  }
-
   try {
-    console.log("Authenticating for shop:", shop);
-    const authUrl = await login(request, shop, "/auth/callback", false);
-    console.log("Redirecting to:", authUrl);
+    const authUrl = await shopify.auth.begin({
+      shop,
+      callbackPath: "/auth/callback",
+      isOnline: false,
+      rawRequest: request,
+      rawResponse: undefined,
+    });
+
     return redirect(authUrl);
   } catch (error) {
-    console.error("Authentication failed:", error);
-    return {
-      errors: { shop: "Authentication failed. Please try again." },
-    };
+    console.error("Failed to start OAuth process:", error);
+    throw error;
   }
 };
 
