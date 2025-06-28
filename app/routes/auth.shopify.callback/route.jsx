@@ -1,10 +1,19 @@
 import { redirect } from "@remix-run/node";
 
 export async function loader({ request }) {
-  // Lógica OAuth específica para este callback
-  // Igual que en /auth/callback, extraer params, validar, etc.
+  const url = new URL(request.url);
+  const shop = url.searchParams.get("shop");
 
-  return redirect("/app"); // o donde sea que quieras redirigir
+  if (!shop) {
+    console.error("Shop parameter missing");
+    return redirect("/auth/login");
+  }
+
+  // Realiza cualquier acción adicional necesaria aquí (validar scopes, etc.)
+  console.log(`Callback recibido para la tienda: ${shop}`);
+
+  // Redirige a la app principal
+  return redirect(`/app?shop=${shop}`);
 }
 
 export default function ShopifyCallback() {

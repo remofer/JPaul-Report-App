@@ -1,18 +1,21 @@
 import { json } from "@remix-run/node";
 
-export async function loader({ request }) {
-  // Si esta ruta es para API, usualmente no es GET, 
-  // podrías querer usar action para POST
-
-  // Pero si necesitas aceptar GET:
-  return json({ message: "API callback GET no implementado" }, { status: 404 });
+export async function loader() {
+  return json({ message: "Método GET no soportado" }, { status: 405 });
 }
 
 export async function action({ request }) {
-  // Aquí podrías recibir POST del callback
-  // Procesa y devuelve respuesta adecuada
+  try {
+    const body = await request.json();
+    console.log("Datos recibidos en API callback:", body);
 
-  return json({ success: true });
+    // Procesa los datos según sea necesario
+
+    return json({ success: true });
+  } catch (error) {
+    console.error("Error en API callback:", error);
+    return json({ error: "Error procesando el callback" }, { status: 500 });
+  }
 }
 
 export default function ApiAuthCallback() {
