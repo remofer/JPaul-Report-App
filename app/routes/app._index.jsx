@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Page, Layout, Card, DropZone, Toast, Frame } from "@shopify/polaris";
 import Papa from "papaparse";
 

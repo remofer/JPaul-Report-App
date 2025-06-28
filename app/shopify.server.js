@@ -9,6 +9,27 @@ const shopify = shopifyApi({
   apiVersion: LATEST_API_VERSION,
 });
 
+// Función para autenticar solicitudes
+export async function authenticate(request) {
+  const sessionToken = request.headers.get("Authorization")?.replace("Bearer ", "");
+
+  if (!sessionToken) {
+    throw new Error("Authentication failed: No session token provided");
+  }
+
+  try {
+    const decodedSession = await shopify.session.decodeSession(sessionToken);
+    if (!decodedSession || !decodedSession.shop) {
+      throw new Error("Invalid session token");
+    }
+
+    return decodedSession;
+  } catch (error) {
+    throw new Error(`Authentication error: ${error.message}`);
+  }
+}
+
+// Función para manejar el login
 export async function login(request) {
   const url = new URL(request.url);
   const shop = url.searchParams.get("shop");
@@ -17,12 +38,7 @@ export async function login(request) {
     return { shop: "Shop domain is required" };
   }
 
-  const authUrl = await shopify.auth.beginAuth(
-    request,
-    shop,
-    "/auth/callback",
-    false,
-  );
+  const authUrl = await shopify.auth.beginAuth(request, shop, "/auth/callback", false);
 
   return Response.redirect(authUrl);
 }
