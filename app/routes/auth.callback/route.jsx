@@ -1,13 +1,11 @@
-import "@shopify/shopify-api/adapters/node";
+import '@shopify/shopify-api/adapters/node';
 import { redirect } from "@remix-run/node";
+import createApp from '@shopify/app-bridge';
+import { Redirect } from '@shopify/app-bridge/actions';
 import { shopifyApi } from "@shopify/shopify-api";
+import crypto from 'crypto';
+import axios from 'axios';
 
-// Validar que HOST esté definido
-if (!process.env.HOST) {
-  throw new Error("Environment variable HOST is not defined.");
-}
-
-// Inicializar Shopify API
 const shopify = shopifyApi({
   apiKey: process.env.SHOPIFY_API_KEY,
   apiSecretKey: process.env.SHOPIFY_API_SECRET,
@@ -16,28 +14,82 @@ const shopify = shopifyApi({
   isEmbeddedApp: true,
 });
 
+// HMAC Validation Function
+function validateHmac(query, clientSecret) {
+  const { hmac, ...rest } = Object.fromEntries(query.entries());
+  const sortedParams = Object.keys(rest)
+    .sort()
+    .map((key) => `${key}=${rest[key]}`)
+    .join('&');
+
+  const calculatedHmac = crypto
+    .createHmac('sha256', clientSecret)
+    .update(sortedParams)
+    .digest('hex');
+
+  return crypto.timingSafeEqual(
+    Buffer.from(hmac, 'utf-8'),
+    Buffer.from(calculatedHmac, 'utf-8')
+  );
+}
+
+// Function to Get Access Token
+async function getAccessToken(shop, code, clientId, clientSecret) {
+  const url = `https://${shop}/admin/oauth/access_token`;
+  const response = await axios.post(url, {
+    client_id: clientId,
+    client_secret: clientSecret,
+    code,
+  });
+
+  return response.data.access_token;
+}
+
+// Remix Loader Function
 export async function loader({ request }) {
-  const url = new URL(request.url);
+  const query = new URL(request.url).searchParams;
+
+  if (!validateHmac(query, process.env.SHOPIFY_API_SECRET)) {
+    console.error("HMAC validation failed");
+    return redirect("/auth/login");
+  }
 
   try {
-    // Validar el callback de autenticación
-    const session = await shopify.auth.validateAuthCallback(
-      request, // La solicitud de Shopify
-      url.searchParams // Los parámetros del callback (shop, hmac, etc.)
+    const session = await shopify.auth.validateAuthCallback(request, query);
+
+    const accessToken = await getAccessToken(
+      query.get('shop'),
+      query.get('code'),
+      process.env.SHOPIFY_API_KEY,
+      process.env.SHOPIFY_API_SECRET
     );
 
-    console.log("Authenticated session:", session);
+    console.log("Access token:", accessToken);
 
-    // Redirigir al área principal de la aplicación
-    return redirect(`/app?shop=${session.shop}`);
+    return redirect(`/app?shop=${session.shop}&token=${accessToken}`);
   } catch (error) {
-    console.error("Error during auth callback:", error);
-
-    // Redirigir al login en caso de error
+    console.error("Error en /auth/callback:", error);
     return redirect("/auth/login");
   }
 }
 
+// Auth Callback Component
 export default function AuthCallback() {
-  return <div>Processing authentication...</div>;
+  // Handle embedded apps
+  if (window.top !== window.self) {
+    const app = createApp({
+      apiKey: process.env.SHOPIFY_API_KEY,
+      host: new URLSearchParams(window.location.search).get('host'),
+    });
+
+    const redirect = Redirect.create(app);
+    redirect.dispatch(
+      Redirect.Action.REMOTE,
+      `${process.env.HOST}/auth/callback`
+    );
+
+    return null; // Stop rendering after redirect
+  }
+
+  return <div>Procesando autenticación...</div>;
 }

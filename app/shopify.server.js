@@ -13,6 +13,8 @@ const shopify = shopifyApp({
   apiSecretKey: process.env.SHOPIFY_API_SECRET || "",
   apiVersion: ApiVersion.January25,
   scopes: process.env.SCOPES?.split(","),
+  hostName: process.env.HOST.replace(/https?:\/\//, ""),
+  isEmbeddedApp: true,
   appUrl: process.env.SHOPIFY_APP_URL || "",
   authPathPrefix: "/auth",
   sessionStorage: new PrismaSessionStorage(prisma),
@@ -33,8 +35,11 @@ export const authenticate = shopify.authenticate;
 export const unauthenticated = shopify.unauthenticated;
 export const login = async (request, shop, redirectUri, isOnline) => {
   console.log("Shop:", shop);
-  console.log("Redirect URI:", redirectUri);
-  console.log("Is Online:", isOnline);
+console.log("Redirect URI:", redirectUri);
+console.log("Is Online:", isOnline);
+console.log("Shopify instance:", shopify);
+console.log("Shopify auth methods:", shopify.auth);
+
   try {
     const authUrl = await shopify.auth.begin({
       shop,
