@@ -31,22 +31,21 @@ export const apiVersion = ApiVersion.January25;
 export const addDocumentResponseHeaders = shopify.addDocumentResponseHeaders;
 export const authenticate = shopify.authenticate;
 export const unauthenticated = shopify.unauthenticated;
-export const login = async (request, shop, redirectUri, isOnline = false) => {
-  if (!shop) {
-    throw new Error("Shop parameter is required for login.");
-  }
-
+export const login = async (request, shop, redirectUri, isOnline) => {
+  console.log("Shop:", shop);
+  console.log("Redirect URI:", redirectUri);
+  console.log("Is Online:", isOnline);
   try {
     const authUrl = await shopify.auth.begin({
       shop,
       callbackPath: redirectUri || "/auth/callback",
-      isOnline,
+      isOnline: isOnline || false,
     });
 
     console.log("Generated auth URL:", authUrl);
     return authUrl;
   } catch (error) {
-    console.error("Error during login:", error.message, error.stack);
+    console.error("Error during login:", error);
     throw new Error("Authentication process failed.");
   }
 };

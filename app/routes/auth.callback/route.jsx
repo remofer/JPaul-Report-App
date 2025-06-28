@@ -1,7 +1,13 @@
-import '@shopify/shopify-api/adapters/node';
+import "@shopify/shopify-api/adapters/node";
 import { redirect } from "@remix-run/node";
 import { shopifyApi } from "@shopify/shopify-api";
 
+// Validar que HOST esté definido
+if (!process.env.HOST) {
+  throw new Error("Environment variable HOST is not defined.");
+}
+
+// Inicializar Shopify API
 const shopify = shopifyApi({
   apiKey: process.env.SHOPIFY_API_KEY,
   apiSecretKey: process.env.SHOPIFY_API_SECRET,
@@ -10,28 +16,28 @@ const shopify = shopifyApi({
   isEmbeddedApp: true,
 });
 
-console.log(shopify, "XDD");
-
 export async function loader({ request }) {
   const url = new URL(request.url);
 
   try {
+    // Validar el callback de autenticación
     const session = await shopify.auth.validateAuthCallback(
-      request, // Shopify valida la solicitud
-      url.searchParams
+      request, // La solicitud de Shopify
+      url.searchParams // Los parámetros del callback (shop, hmac, etc.)
     );
 
-    // Aquí puedes guardar la sesión si lo necesitas
     console.log("Authenticated session:", session);
 
-    // Redirige a tu app principal dentro de Shopify
+    // Redirigir al área principal de la aplicación
     return redirect(`/app?shop=${session.shop}`);
   } catch (error) {
-    console.error("Error en /auth/callback:", error);
-    return redirect("/auth/login"); // Redirige al login si hay error
+    console.error("Error during auth callback:", error);
+
+    // Redirigir al login en caso de error
+    return redirect("/auth/login");
   }
 }
 
 export default function AuthCallback() {
-  return <div>Procesando autenticación...</div>;
+  return <div>Processing authentication...</div>;
 }
