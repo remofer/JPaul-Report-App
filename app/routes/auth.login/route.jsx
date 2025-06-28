@@ -31,9 +31,13 @@ export const action = async ({ request }) => {
   }
 
   try {
+    console.log("Attempting authentication for shop:", shop);
     const authUrl = await login(request, shop, "/auth/callback", false);
+    console.log("Auth URL generated:", authUrl);
+
     return redirect(authUrl);
   } catch (error) {
+    console.error("Authentication error:", error.message);
     return {
       errors: { shop: "Authentication failed. Please try again." },
     };
