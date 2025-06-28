@@ -1,29 +1,35 @@
-import { redirect } from "@remix-run/node";
-import jwt from "jsonwebtoken"; // Para decodificar o validar el token
+import "@shopify/shopify-app-remix/adapters/node";
+import {
+  ApiVersion,
+  AppDistribution,
+  shopifyApp,
+} from "@shopify/shopify-app-remix/server";
+import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prisma";
+import prisma from "./db.server";
 
-export async function loader({ request }) {
-  const url = new URL(request.url);
-  const sessionToken = url.searchParams.get("session");
+const shopify = shopifyApp({
+  apiKey: process.env.SHOPIFY_API_KEY,
+  apiSecretKey: process.env.SHOPIFY_API_SECRET || "",
+  apiVersion: ApiVersion.January25,
+  scopes: process.env.SCOPES?.split(","),
+  appUrl: process.env.SHOPIFY_APP_URL || "",
+  authPathPrefix: "/auth",
+  sessionStorage: new PrismaSessionStorage(prisma),
+  distribution: AppDistribution.AppStore,
+  future: {
+    unstable_newEmbeddedAuthStrategy: true,
+    removeRest: true,
+  },
+  ...(process.env.SHOP_CUSTOM_DOMAIN
+    ? { customShopDomains: [process.env.SHOP_CUSTOM_DOMAIN] }
+    : {}),
+});
 
-  if (!sessionToken) {
-    return redirect("/error?message=session-token-missing"); // Redirige a una página de error si falta el token
-  }
-
-  try {
-    // Decodifica el token (si es necesario)
-    const decodedToken = jwt.decode(sessionToken);
-    console.log("Decoded token:", decodedToken);
-
-    // Aquí podrías agregar lógica adicional como guardar el token o verificar datos
-
-    // Redirige a la página principal de tu app
-    return redirect("/app");
-  } catch (error) {
-    console.error("Error procesando el token:", error);
-    return redirect("/error?message=invalid-session-token");
-  }
-}
-
-export default function SessionTokenHandler() {
-  return null; // No necesitas devolver contenido ya que estás redirigiendo
-}
+export default shopify;
+export const apiVersion = ApiVersion.January25;
+export const addDocumentResponseHeaders = shopify.addDocumentResponseHeaders;
+export const authenticate = shopify.authenticate;
+export const unauthenticated = shopify.unauthenticated;
+export const login = shopify.login;
+export const registerWebhooks = shopify.registerWebhooks;
+export const sessionStorage = shopify.sessionStorage;
