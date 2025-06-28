@@ -1,3 +1,4 @@
+import '@shopify/shopify-api/adapters/node';
 import { redirect } from "@remix-run/node";
 import { shopifyApi } from "@shopify/shopify-api";
 

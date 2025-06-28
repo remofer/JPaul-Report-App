@@ -1,3 +1,4 @@
+import '@shopify/shopify-api/adapters/node';
 import "@shopify/shopify-app-remix/adapters/node";
 import {
   ApiVersion,
@@ -30,18 +31,22 @@ export const apiVersion = ApiVersion.January25;
 export const addDocumentResponseHeaders = shopify.addDocumentResponseHeaders;
 export const authenticate = shopify.authenticate;
 export const unauthenticated = shopify.unauthenticated;
-export const login = async (request, shop, redirectUri, isOnline) => {
+export const login = async (request, shop, redirectUri, isOnline = false) => {
+  if (!shop) {
+    throw new Error("Shop parameter is required for login.");
+  }
+
   try {
     const authUrl = await shopify.auth.begin({
       shop,
       callbackPath: redirectUri || "/auth/callback",
-      isOnline: isOnline || false,
+      isOnline,
     });
 
     console.log("Generated auth URL:", authUrl);
     return authUrl;
   } catch (error) {
-    console.error("Error during login:", error.message);
+    console.error("Error during login:", error.message, error.stack);
     throw new Error("Authentication process failed.");
   }
 };
