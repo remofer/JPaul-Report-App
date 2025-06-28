@@ -12,7 +12,7 @@ import {
 } from "@shopify/polaris";
 import polarisTranslations from "@shopify/polaris/locales/en.json";
 import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
-import { shopifyAuth } from "../../shopify.server"; // Cambiado desde `login`
+import { login } from "../../shopify.server"; // Cambiado desde `login`
 
 export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 
@@ -22,7 +22,7 @@ export const loader = async ({ request }) => {
   const topLevel = url.searchParams.get("top_level");
 
   if (topLevel === "true" && shop) {
-    const authUrl = await shopifyAuth.getAuthUrl(shop);
+    const authUrl = await login.getAuthUrl(shop);
     return redirect(authUrl);
   }
 
