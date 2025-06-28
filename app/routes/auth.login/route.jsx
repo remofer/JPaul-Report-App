@@ -13,35 +13,38 @@ import {
 import polarisTranslations from "@shopify/polaris/locales/en.json";
 import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
 import { login } from "../../shopify.server";
-import { loginErrorMessage } from "./error.server";
 
 export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 
-export const loader = async ({ request }) => {
-  const errors = loginErrorMessage(await login(request));
-
-  return { errors, polarisTranslations };
+export const loader = async () => {
+  return { polarisTranslations };
 };
 
 export const action = async ({ request }) => {
-  const url = new URL(request.url);
-  const shop = url.searchParams.get("shop");
+  const formData = await request.formData();
+  const shop = formData.get("shop");
 
-  if (!shop) {
+  if (!shop || !shop.endsWith(".myshopify.com")) {
     return {
-      errors: { shop: "Shop domain is required" },
+      errors: { shop: "Please enter a valid Shopify domain (e.g., example.myshopify.com)." },
     };
   }
 
-  const authUrl = await login.beginAuth(request, shop, "/auth/callback", false);
-  return redirect(authUrl);
+  try {
+    const authUrl = await login(request, shop, "/auth/callback", false);
+    return redirect(authUrl);
+  } catch (error) {
+    return {
+      errors: { shop: "Authentication failed. Please try again." },
+    };
+  }
 };
 
 export default function Auth() {
   const loaderData = useLoaderData();
   const actionData = useActionData();
   const [shop, setShop] = useState("");
-  const { errors } = actionData || loaderData;
+  const { errors } = actionData || {};
 
   return (
     <PolarisAppProvider i18n={loaderData.polarisTranslations}>
@@ -58,7 +61,7 @@ export default function Auth() {
                 label="Shop domain"
                 helpText="example.myshopify.com"
                 value={shop}
-                onChange={setShop}
+                onChange={(value) => setShop(value)}
                 autoComplete="on"
                 error={errors?.shop}
               />
