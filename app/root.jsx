@@ -1,21 +1,16 @@
-import {
-  Links,
-  Meta,
-  Outlet,
-  Scripts,
-  ScrollRestoration,
-} from "@remix-run/react";
-import { json } from "@remix-run/node";
+import { json, Links, Meta, Outlet, Scripts, ScrollRestoration, useLoaderData } from "@remix-run/react";
 
 export const loader = () => {
   return json({
     ENV: {
-      SHOPIFY_API_KEY: process.env.SHOPIFY_API_KEY, // Variable de entorno para el frontend
+      SHOPIFY_API_KEY: process.env.SHOPIFY_API_KEY,
     },
   });
 };
 
 export default function App() {
+  const { ENV } = useLoaderData();
+
   return (
     <html>
       <head>
@@ -33,10 +28,10 @@ export default function App() {
         <Outlet />
         <ScrollRestoration />
         <Scripts />
-        {/* Inyecta las variables de entorno */}
+        {/* Inyecta las variables de entorno correctamente */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `window.ENV = ${JSON.stringify(window.ENV)};`,
+            __html: `window.ENV = ${JSON.stringify(ENV)};`,
           }}
         />
       </body>
