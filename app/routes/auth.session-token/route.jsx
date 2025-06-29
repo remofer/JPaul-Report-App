@@ -1,55 +1,48 @@
-import { json } from "@remix-run/node"; // Para respuestas backend
-import { useLoaderData } from "@remix-run/react"; // Para acceder a datos en frontend
-import { decodeSessionToken } from "@shopify/shopify-api"; // Shopify Node API para decodificar tokens
+import { json } from "@remix-run/node"; // Backend responses
+import { useLoaderData } from "@remix-run/react"; // Frontend data access
+import jwt from "jsonwebtoken"; // Para decodificar/verificar JWT en backend
 import createApp from "@shopify/app-bridge"; // Shopify App Bridge para frontend
-import { getSessionToken } from "@shopify/app-bridge/utilities"; // Utilidad para obtener session tokens
+import { getSessionToken } from "@shopify/app-bridge/utilities"; // Obtener session tokens
 import React, { useEffect } from "react";
 
 // Backend: Verificar session token
 export const loader = async ({ request }) => {
   try {
-    // Obtén el token desde el encabezado Authorization
     const authHeader = request.headers.get("Authorization");
-    if (!authHeader) {
-      throw new Error("Authorization header missing");
-    }
+    if (!authHeader) throw new Error("Authorization header missing");
 
     const sessionToken = authHeader.replace("Bearer ", "");
     console.log("Session Token recibido:", sessionToken);
 
-    // Decodifica y valida el token
-    const decodedToken = decodeSessionToken(sessionToken, process.env.SHOPIFY_API_SECRET_KEY);
+    // Decodifica y verifica el token con jsonwebtoken
+    const decodedToken = jwt.verify(sessionToken, process.env.SHOPIFY_API_SECRET_KEY);
 
-    return json({ success: true, data: decodedToken });
+    return json({ success: true, data: decodedToken, apiKey: process.env.SHOPIFY_API_KEY });
   } catch (error) {
     console.error("Error al validar el session token:", error.message);
-
     return json({ success: false, error: error.message }, { status: 401 });
   }
 };
 
 // Frontend: Componente para manejar session tokens
 export default function SessionTokenRoute() {
-  const data = useLoaderData();
+  const { apiKey, ...data } = useLoaderData();
 
   useEffect(() => {
     async function fetchSessionToken() {
       try {
-        // Inicializa App Bridge
         const app = createApp({
-          apiKey: window.ENV.SHOPIFY_API_KEY, // Pasada desde el loader
-          host: new URLSearchParams(window.location.search).get("host"), // Obtén el host de la URL
+          apiKey, // Pasada desde loader
+          host: new URLSearchParams(window.location.search).get("host"),
         });
 
-        // Obtén el session token
         const sessionToken = await getSessionToken(app);
         console.log("Session Token obtenido:", sessionToken);
 
-        // Envía el token al backend
         const response = await fetch("/auth/session-token", {
           method: "GET",
           headers: {
-            Authorization: `Bearer ${sessionToken}`, // Envío del token en el encabezado
+            Authorization: `Bearer ${sessionToken}`,
           },
         });
 
@@ -57,15 +50,15 @@ export default function SessionTokenRoute() {
           throw new Error(`Error al obtener datos del backend: ${response.statusText}`);
         }
 
-        const data = await response.json();
-        console.log("Respuesta del backend:", data);
+        const responseData = await response.json();
+        console.log("Respuesta del backend:", responseData);
       } catch (error) {
         console.error("Error al obtener o enviar el session token:", error);
       }
     }
 
     fetchSessionToken();
-  }, []);
+  }, [apiKey]);
 
   return (
     <div>
