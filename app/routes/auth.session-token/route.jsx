@@ -1,88 +1,73 @@
-import { json } from "@remix-run/node"; // Backend responses
-import { useLoaderData } from "@remix-run/react"; // Frontend data access
-import jwt from "jsonwebtoken"; // Para decodificar/verificar JWT en backend
-import createApp from "@shopify/app-bridge"; // Shopify App Bridge para frontend
-import { getSessionToken } from "@shopify/app-bridge/utilities"; // Obtener session tokens
+import { json } from "@remix-run/node";
+import { useLoaderData } from "@remix-run/react";
+import jwt from "jsonwebtoken";
+import createApp from "@shopify/app-bridge";
+import { getSessionToken } from "@shopify/app-bridge/utilities";
 import React, { useEffect, useState } from "react";
 
-// Backend: Verificar session token
 export const loader = async ({ request }) => {
   try {
     const authHeader = request.headers.get("Authorization");
     if (!authHeader) throw new Error("Authorization header missing");
 
     const sessionToken = authHeader.replace("Bearer ", "");
-    console.log("Session Token recibido:", sessionToken);
-
-    // Decodifica y verifica el token con jsonwebtoken
     const decodedToken = jwt.verify(sessionToken, process.env.SHOPIFY_API_SECRET_KEY);
 
     return json({ success: true, data: decodedToken, apiKey: process.env.SHOPIFY_API_KEY });
   } catch (error) {
-    console.error("Error al validar el session token:", error.message);
     return json({ success: false, error: error.message }, { status: 401 });
   }
 };
 
-// Frontend: Componente para manejar session tokens
 export default function SessionTokenRoute() {
   const { apiKey, ...data } = useLoaderData();
   const [sessionToken, setSessionToken] = useState(null);
   const [backendResponse, setBackendResponse] = useState(null);
 
   useEffect(() => {
-    async function fetchSessionToken() {
+    if (!apiKey) return;
+
+    async function fetchToken() {
       try {
-        // Aseguramos que window exista (estamos en cliente)
-        if (!apiKey || typeof window === "undefined") return;
+        // Aquí sí podemos usar window porque estamos en cliente
+        const host = new URLSearchParams(window.location.search).get("host");
 
-        const app = createApp({
-          apiKey,
-          host: new URLSearchParams(window.location.search).get("host"),
-        });
-
+        const app = createApp({ apiKey, host });
         const token = await getSessionToken(app);
         setSessionToken(token);
-        console.log("Session Token obtenido:", token);
 
         const response = await fetch("/auth/session-token", {
           method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         });
 
-        if (!response.ok) {
-          throw new Error(`Error al obtener datos del backend: ${response.statusText}`);
-        }
+        if (!response.ok) throw new Error(response.statusText);
 
-        const responseData = await response.json();
-        setBackendResponse(responseData);
-        console.log("Respuesta del backend:", responseData);
+        const json = await response.json();
+        setBackendResponse(json);
       } catch (error) {
-        console.error("Error al obtener o enviar el session token:", error);
+        console.error(error);
       }
     }
 
-    fetchSessionToken();
+    fetchToken();
   }, [apiKey]);
 
   return (
     <div>
       <h1>Session Token Route</h1>
-      <p>Esta ruta valida el session token.</p>
       <pre>{JSON.stringify(data, null, 2)}</pre>
 
       {sessionToken && (
         <>
-          <h2>Session Token obtenido:</h2>
+          <h2>Session Token obtenido</h2>
           <pre>{sessionToken}</pre>
         </>
       )}
 
       {backendResponse && (
         <>
-          <h2>Respuesta del backend:</h2>
+          <h2>Respuesta del backend</h2>
           <pre>{JSON.stringify(backendResponse, null, 2)}</pre>
         </>
       )}
