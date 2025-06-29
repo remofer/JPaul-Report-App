@@ -3,7 +3,7 @@ import { useLoaderData } from "@remix-run/react"; // Frontend data access
 import jwt from "jsonwebtoken"; // Para decodificar/verificar JWT en backend
 import createApp from "@shopify/app-bridge"; // Shopify App Bridge para frontend
 import { getSessionToken } from "@shopify/app-bridge/utilities"; // Obtener session tokens
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 
 // Backend: Verificar session token
 export const loader = async ({ request }) => {
@@ -27,22 +27,28 @@ export const loader = async ({ request }) => {
 // Frontend: Componente para manejar session tokens
 export default function SessionTokenRoute() {
   const { apiKey, ...data } = useLoaderData();
+  const [sessionToken, setSessionToken] = useState(null);
+  const [backendResponse, setBackendResponse] = useState(null);
 
   useEffect(() => {
     async function fetchSessionToken() {
       try {
+        // Aseguramos que window exista (estamos en cliente)
+        if (!apiKey || typeof window === "undefined") return;
+
         const app = createApp({
-          apiKey, // Pasada desde loader
+          apiKey,
           host: new URLSearchParams(window.location.search).get("host"),
         });
 
-        const sessionToken = await getSessionToken(app);
-        console.log("Session Token obtenido:", sessionToken);
+        const token = await getSessionToken(app);
+        setSessionToken(token);
+        console.log("Session Token obtenido:", token);
 
         const response = await fetch("/auth/session-token", {
           method: "GET",
           headers: {
-            Authorization: `Bearer ${sessionToken}`,
+            Authorization: `Bearer ${token}`,
           },
         });
 
@@ -51,6 +57,7 @@ export default function SessionTokenRoute() {
         }
 
         const responseData = await response.json();
+        setBackendResponse(responseData);
         console.log("Respuesta del backend:", responseData);
       } catch (error) {
         console.error("Error al obtener o enviar el session token:", error);
@@ -65,6 +72,20 @@ export default function SessionTokenRoute() {
       <h1>Session Token Route</h1>
       <p>Esta ruta valida el session token.</p>
       <pre>{JSON.stringify(data, null, 2)}</pre>
+
+      {sessionToken && (
+        <>
+          <h2>Session Token obtenido:</h2>
+          <pre>{sessionToken}</pre>
+        </>
+      )}
+
+      {backendResponse && (
+        <>
+          <h2>Respuesta del backend:</h2>
+          <pre>{JSON.stringify(backendResponse, null, 2)}</pre>
+        </>
+      )}
     </div>
   );
 }
