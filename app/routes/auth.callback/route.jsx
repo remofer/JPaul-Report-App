@@ -1,21 +1,27 @@
-// app/routes/auth.callback.jsx
-import shopify from "../../shopify.server";
 import { redirect } from "@remix-run/node";
+import shopify from "../../shopify.server";
 
-export const loader = async ({ request }) => {
+export const action = async ({ request }) => {
+  const url = new URL(request.url);
+  const shop = url.searchParams.get("shop");
+
+  if (!shop) {
+    console.error("Error: Shop parameter is required in action.");
+    throw new Error("Shop parameter is required.");
+  }
+
   try {
-    const url = new URL(request.url);
+    const authUrl = await shopify.auth.begin({
+      shop,
+      callbackPath: "/auth/callback",
+      isOnline: true,
+      rawRequest: request,
+      rawResponse: undefined, // Remix no usa "res"
+    });
 
-    // Shopify envía los query params para validar el callback
-    const session = await shopify.auth.validateAuthCallback(request, url.pathname);
-
-    // Aquí puedes guardar session info en DB o session storage
-    console.log("Auth session:", session);
-
-    // Redirigir a la app luego de login
-    return redirect("/");
+    return redirect(authUrl);
   } catch (error) {
-    console.error("Failed to complete OAuth:", error);
-    return new Response("OAuth callback error", { status: 500 });
+    console.error("Error during authentication:", error);
+    throw error;
   }
 };

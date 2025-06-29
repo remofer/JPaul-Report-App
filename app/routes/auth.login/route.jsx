@@ -1,3 +1,4 @@
+import { json, redirect } from "@remix-run/node";
 import { useState } from "react";
 import { useActionData } from "@remix-run/react";
 import {
@@ -14,6 +15,28 @@ import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
 
 export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 
+// Action to handle POST requests
+export const action = async ({ request }) => {
+  const formData = await request.formData();
+  const shop = formData.get("shop");
+
+  if (!shop || !shop.endsWith(".myshopify.com")) {
+    return json(
+      { errors: { shop: "Invalid shop domain. It must end with .myshopify.com" } },
+      { status: 400 }
+    );
+  }
+
+  try {
+    // Redirect to the Shopify OAuth flow
+    const shopUrl = new URL(`/auth?shop=${shop}`, process.env.HOST);
+    return redirect(shopUrl.toString());
+  } catch (error) {
+    console.error("Authentication error:", error);
+    return json({ errors: { shop: "An error occurred during authentication." } }, { status: 500 });
+  }
+};
+
 export default function Auth() {
   const actionData = useActionData();
   const [shop, setShop] = useState("");
@@ -22,7 +45,7 @@ export default function Auth() {
     <PolarisAppProvider i18n={polarisTranslations}>
       <Page>
         <Card>
-          <form method="post" action="/auth">
+          <form method="post" action="/auth/login">
             <FormLayout>
               <Text variant="headingMd" as="h2">
                 Log in

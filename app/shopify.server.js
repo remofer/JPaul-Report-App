@@ -1,10 +1,7 @@
 import '@shopify/shopify-api/adapters/node';
-import "@shopify/shopify-app-remix/adapters/node";
-import {
-  ApiVersion,
-  AppDistribution,
-  shopifyApp,
-} from "@shopify/shopify-app-remix/server";
+// import "@shopify/shopify-app-remix/adapters/node";
+import '@shopify/shopify-app-remix/server/adapters/node';
+import { ApiVersion, AppDistribution, shopifyApp, LATEST_API_VERSION } from "@shopify/shopify-app-remix/server";
 import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prisma";
 import prisma from "./db.server";
 
@@ -19,7 +16,7 @@ if (!process.env.HOST) {
 const shopify = shopifyApp({
   apiKey: process.env.SHOPIFY_API_KEY,
   apiSecretKey: process.env.SHOPIFY_API_SECRET || "",
-  apiVersion: ApiVersion.April25, // Última versión soportada
+  apiVersion: ApiVersion.April25,
   scopes: process.env.SCOPES?.split(","),
   hostName: process.env.HOST.replace(/https?:\/\//, ""),
   isEmbeddedApp: true,
@@ -36,10 +33,14 @@ const shopify = shopifyApp({
     : {}),
 });
 
+console.log("XD:", shopify);
+console.log("Shopify auth methods available:", shopify.auth);
+
 export default shopify;
 export const apiVersion = ApiVersion.April25;
 export const addDocumentResponseHeaders = shopify.addDocumentResponseHeaders;
 export const authenticate = shopify.authenticate;
+console.log("Available authenticate methods:", authenticate);
 export const unauthenticated = shopify.unauthenticated;
 
 export const login = async (request, shop, redirectUri, isOnline) => {
