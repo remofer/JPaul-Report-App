@@ -20,7 +20,9 @@ export const action = async ({ request }) => {
   const formData = await request.formData();
   const shop = formData.get("shop");
 
-  if (!shop || !shop.endsWith(".myshopify.com")) {
+  const isValidShop = (shop) => /^[a-zA-Z0-9][a-zA-Z0-9-]*\.myshopify\.com$/.test(shop);
+
+  if (!shop || !isValidShop(shop)) {
     return json(
       { errors: { shop: "Invalid shop domain. It must end with .myshopify.com" } },
       { status: 400 }
@@ -28,12 +30,16 @@ export const action = async ({ request }) => {
   }
 
   try {
-    // Redirect to the Shopify OAuth flow
-    const shopUrl = new URL(`/auth?shop=${shop}`, process.env.HOST);
+    const host =
+      process.env.HOST || `${request.headers.get("x-forwarded-proto") || "http"}://${request.headers.get("host")}`;
+    const shopUrl = new URL(`/auth?shop=${shop}`, host);
     return redirect(shopUrl.toString());
   } catch (error) {
     console.error("Authentication error:", error);
-    return json({ errors: { shop: "An error occurred during authentication." } }, { status: 500 });
+    return json(
+      { errors: { shop: "An error occurred during authentication." } },
+      { status: 500 }
+    );
   }
 };
 
