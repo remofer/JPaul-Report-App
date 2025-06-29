@@ -1,27 +1,22 @@
 import { redirect } from "@remix-run/node";
-import shopify from "../../shopify.server";
+import {authenticate} from "../../shopify.server";
 
-export const action = async ({ request }) => {
+export const loader = async ({ request }) => {
   const url = new URL(request.url);
   const shop = url.searchParams.get("shop");
 
+  // Validar `shop`
   if (!shop) {
-    console.error("Error: Shop parameter is required in action.");
-    throw new Error("Shop parameter is required.");
+    throw new Error("Missing shop parameter");
   }
 
-  try {
-    const authUrl = await shopify.auth.begin({
-      shop,
-      callbackPath: "/auth/callback",
-      isOnline: true,
-      rawRequest: request,
-      rawResponse: undefined, // Remix no usa "res"
-    });
+  // Procesar la autenticación
+  const session = await authenticate.admin(request);
 
-    return redirect(authUrl);
-  } catch (error) {
-    console.error("Error during authentication:", error);
-    throw error;
+  // Redirigir al dashboard o página principal
+  if (session) {
+    return redirect("/dashboard");
   }
+
+  throw new Error("Failed to authenticate");
 };
