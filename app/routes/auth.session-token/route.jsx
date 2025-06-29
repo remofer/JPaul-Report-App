@@ -1,67 +1,76 @@
-import { json } from "@remix-run/node";
-import { useLoaderData } from "@remix-run/react";
-import jwt from "jsonwebtoken";
-import createApp from "@shopify/app-bridge";
-import { getSessionToken } from "@shopify/app-bridge/utilities";
+import { json } from "@remix-run/node"; // Para respuestas backend
+import { useLoaderData } from "@remix-run/react"; // Para acceder a datos en frontend
+import { decodeSessionToken } from "@shopify/shopify-api"; // Shopify Node API para decodificar tokens
+import createApp from "@shopify/app-bridge"; // Shopify App Bridge para frontend
+import { getSessionToken } from "@shopify/app-bridge/utilities"; // Utilidad para obtener session tokens
+import React, { useEffect } from "react";
 
 // Backend: Verificar session token
 export const loader = async ({ request }) => {
   try {
+    // Obtén el token desde el encabezado Authorization
     const authHeader = request.headers.get("Authorization");
-
     if (!authHeader) {
       throw new Error("Authorization header missing");
     }
 
-    const token = authHeader.replace("Bearer ", "");
+    const sessionToken = authHeader.replace("Bearer ", "");
+    console.log("Session Token recibido:", sessionToken);
 
-    // Verificar el token
-    const decoded = jwt.verify(token, process.env.SHOPIFY_API_SECRET_KEY, {
-      algorithms: ["HS256"],
-    });
+    // Decodifica y valida el token
+    const decodedToken = decodeSessionToken(sessionToken, process.env.SHOPIFY_API_SECRET_KEY);
 
-    return json({ message: "Session token is valid", shop: decoded.dest });
+    return json({ success: true, data: decodedToken });
   } catch (error) {
-    return json({ error: error.message }, { status: 403 });
+    console.error("Error al validar el session token:", error.message);
+
+    return json({ success: false, error: error.message }, { status: 401 });
   }
 };
 
-// Frontend: Obtener el session token
+// Frontend: Componente para manejar session tokens
 export default function SessionTokenRoute() {
   const data = useLoaderData();
 
-  async function handleGetSessionToken() {
-    try {
-      // Configura Shopify App Bridge
-      const app = createApp({
-        apiKey: process.env.SHOPIFY_API_KEY,
-        host: new URLSearchParams(window.location.search).get("host"),
-      });
+  useEffect(() => {
+    async function fetchSessionToken() {
+      try {
+        // Inicializa App Bridge
+        const app = createApp({
+          apiKey: window.ENV.SHOPIFY_API_KEY, // Pasada desde el loader
+          host: new URLSearchParams(window.location.search).get("host"), // Obtén el host de la URL
+        });
 
-      // Obtén el session token
-      const sessionToken = await getSessionToken(app);
+        // Obtén el session token
+        const sessionToken = await getSessionToken(app);
+        console.log("Session Token obtenido:", sessionToken);
 
-      console.log("Session Token obtenido:", sessionToken);
+        // Envía el token al backend
+        const response = await fetch("/auth/session-token", {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${sessionToken}`, // Envío del token en el encabezado
+          },
+        });
 
-      // Envía el token al backend
-      const response = await fetch("/auth/session-token", {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${sessionToken}`,
-        },
-      });
+        if (!response.ok) {
+          throw new Error(`Error al obtener datos del backend: ${response.statusText}`);
+        }
 
-      const result = await response.json();
-      console.log("Respuesta del backend:", result);
-    } catch (error) {
-      console.error("Error al obtener o enviar el session token:", error);
+        const data = await response.json();
+        console.log("Respuesta del backend:", data);
+      } catch (error) {
+        console.error("Error al obtener o enviar el session token:", error);
+      }
     }
-  }
+
+    fetchSessionToken();
+  }, []);
 
   return (
     <div>
       <h1>Session Token Route</h1>
-      <button onClick={handleGetSessionToken}>Validate Session Token</button>
+      <p>Esta ruta valida el session token.</p>
       <pre>{JSON.stringify(data, null, 2)}</pre>
     </div>
   );

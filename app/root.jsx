@@ -5,6 +5,15 @@ import {
   Scripts,
   ScrollRestoration,
 } from "@remix-run/react";
+import { json } from "@remix-run/node";
+
+export const loader = () => {
+  return json({
+    ENV: {
+      SHOPIFY_API_KEY: process.env.SHOPIFY_API_KEY, // Variable de entorno para el frontend
+    },
+  });
+};
 
 export default function App() {
   return (
@@ -24,6 +33,12 @@ export default function App() {
         <Outlet />
         <ScrollRestoration />
         <Scripts />
+        {/* Inyecta las variables de entorno */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.ENV = ${JSON.stringify(window.ENV)};`,
+          }}
+        />
       </body>
     </html>
   );
