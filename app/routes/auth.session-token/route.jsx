@@ -5,88 +5,54 @@ import { getSessionToken } from "@shopify/app-bridge/utilities";
 import React, { useEffect, useState } from "react";
 
 export const loader = async () => {
-  return json({
-    apiKey: process.env.SHOPIFY_API_KEY,
-  });
+  return json({ apiKey: process.env.SHOPIFY_API_KEY });
 };
 
 export default function SessionTokenPage() {
   const { apiKey } = useLoaderData();
   const [sessionToken, setSessionToken] = useState(null);
-  const [backendResponse, setBackendResponse] = useState(null);
-  const [urlParams, setUrlParams] = useState({});
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    // Obtener parámetros de la URL
-    const params = Object.fromEntries(new URLSearchParams(window.location.search).entries());
-    setUrlParams(params);
-
-    if (!params.host) {
-      setError("Host parameter missing");
-    }
-  }, []);
 
   useEffect(() => {
     async function initializeApp() {
+      const params = new URLSearchParams(window.location.search);
+      const host = params.get("host");
+
+      if (!host) {
+        console.error("Host parameter is missing");
+        window.location.href = `/error?message=${encodeURIComponent("Host parameter is missing")}`;
+        return;
+      }
+
       try {
-        const app = createApp({ apiKey, host: urlParams.host });
+        const app = createApp({ apiKey, host });
         const token = await getSessionToken(app);
         setSessionToken(token);
 
         const response = await fetch("/api/session-token", {
           headers: { Authorization: `Bearer ${token}` },
         });
-  
-        if (!response.ok) {
-          const text = await response.text();
-          throw new Error(`Backend Error: ${text}`);
-        }
-  
+
         const result = await response.json();
-        if (!result.success) {
+
+        if (result.success) {
+          window.location.href = "/app";
+        } else {
           throw new Error(result.error);
         }
-  
-        setBackendResponse(result);
       } catch (err) {
-        console.error("Error in session-token fetch:", err.message);
-        setError(err.message);
+        console.error("Error initializing app:", err.message);
+        window.location.href = `/error?message=${encodeURIComponent(err.message)}`;
       }
     }
 
     initializeApp();
-  }, [apiKey]);  
+  }, [apiKey]);
 
-  return (
-    <div>
-      <h1>Session Token Debug</h1>
+  if (!sessionToken) {
+    return <div>Initializing session...</div>;
+  }
 
-      <h2>Parámetros de la URL</h2>
-      <pre>{JSON.stringify(urlParams, null, 2)}</pre>
-
-      {error && (
-        <div>
-          <h2>Error</h2>
-          <pre>{JSON.stringify({ error }, null, 2)}</pre>
-        </div>
-      )}
-
-      {sessionToken && (
-        <>
-          <h2>Session Token Obtenido</h2>
-          <pre>{sessionToken}</pre>
-        </>
-      )}
-
-      {backendResponse && (
-        <>
-          <h2>Respuesta del Backend</h2>
-          <pre>{JSON.stringify(backendResponse, null, 2)}</pre>
-        </>
-      )}
-    </div>
-  );
+  return <div>Redirecting to the app...</div>;
 }
 // // import { json } from "@remix-run/node";
 // // import { useEffect, useState } from "react";

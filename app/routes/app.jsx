@@ -1,31 +1,36 @@
-import { Outlet, useLoaderData, useRouteError } from "@remix-run/react";
-import { boundary } from "@shopify/shopify-app-remix/server";
+import { json, redirect } from "@remix-run/node";
 import { AppProvider } from "@shopify/shopify-app-remix/react";
+import { boundary } from "@shopify/shopify-app-remix/server";
 import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
 import { authenticate } from "../shopify.server";
+import { Outlet, useLoaderData, useRouteError } from "@remix-run/react";
 
 export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 
 export const loader = async ({ request }) => {
   try {
     console.log("App loader - authenticating...");
-    const session = await authenticate.admin(request);
-    console.log("Authenticated session:", session);
+    const { session, redirect: redirectTo } = await authenticate.admin(request);
 
-    if (!session) {
-      throw new Error("No session found");
+    if (redirectTo) {
+      console.log("Redirect required:", redirectTo);
+      return redirect(redirectTo);
     }
 
-    return { apiKey: process.env.SHOPIFY_API_KEY || "" };
+    if (!session || !session.shop) {
+      throw new Error("Session is missing or invalid");
+    }
+
+    console.log("Authenticated session:", session);
+    return json({ apiKey: process.env.SHOPIFY_API_KEY || "" });
   } catch (error) {
     console.error("Error in app loader:", error.message);
-    throw new Response("Authentication failed", { status: 401 });
+    return redirect(`/error?message=${encodeURIComponent(error.message)}`);
   }
 };
 
 export default function App() {
   const { apiKey } = useLoaderData();
-
   return (
     <AppProvider isEmbeddedApp apiKey={apiKey}>
       <Outlet />
@@ -34,7 +39,13 @@ export default function App() {
 }
 
 export function ErrorBoundary() {
-  return boundary.error(useRouteError());
+  const error = useRouteError();
+  return (
+    <div style={{ padding: "1rem", background: "#f8d7da", color: "#721c24" }}>
+      <h1>Something went wrong!</h1>
+      <pre>{error?.message || "Unknown error"}</pre>
+    </div>
+  );
 }
 
 export const headers = (args) => boundary.headers(args);
