@@ -1,10 +1,27 @@
 import React, { useState, useEffect } from "react";
-import { Page, Layout, Card, DropZone, Toast, Frame } from "@shopify/polaris";
+import {
+  AppProvider,
+  Page,
+  Layout,
+  Card,
+  DropZone,
+  Toast,
+  Frame,
+} from "@shopify/polaris";
+import polarisTranslations from "@shopify/polaris/locales/en.json";
 import Papa from "papaparse";
 import { getSessionToken } from "@shopify/app-bridge/utilities";
 import createApp from "@shopify/app-bridge";
 
-export default function FileUploader() {
+export default function AppWrapper() {
+  return (
+    <AppProvider i18n={polarisTranslations}>
+      <FileUploader />
+    </AppProvider>
+  );
+}
+
+function FileUploader() {
   const [toastMessage, setToastMessage] = useState(null);
   const [sessionToken, setSessionToken] = useState(null);
 
@@ -111,7 +128,9 @@ export default function FileUploader() {
             </Card>
           </Layout.Section>
         </Layout>
-        {toastMessage && <Toast content={toastMessage} onDismiss={() => setToastMessage(null)} />}
+        {toastMessage && (
+          <Toast content={toastMessage} onDismiss={() => setToastMessage(null)} />
+        )}
       </Page>
     </Frame>
   );
