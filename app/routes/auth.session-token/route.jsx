@@ -22,7 +22,7 @@ export default function SessionTokenPage() {
         const app = createApp({ apiKey, host });
         const token = await getSessionToken(app);
 
-        const response = await fetch("/api.session-token", {
+        const response = await fetch("/api/session-token", {
           headers: { Authorization: `Bearer ${token}` },
         });
 
