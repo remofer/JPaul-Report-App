@@ -7,9 +7,15 @@ import { authenticate } from "../shopify.server";
 export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 
 export const loader = async ({ request }) => {
-  // Autenticar sesión admin
-  await authenticate.admin(request);
-  return { apiKey: process.env.SHOPIFY_API_KEY || "" };
+  try {
+    console.log("App loader - authenticating...");
+    await authenticate.admin(request);
+    console.log("Authentication successful");
+    return { apiKey: process.env.SHOPIFY_API_KEY || "" };
+  } catch (error) {
+    console.error("Error in app loader:", error.message);
+    throw error;
+  }
 };
 
 export default function App() {
