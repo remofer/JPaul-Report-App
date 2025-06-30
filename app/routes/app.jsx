@@ -9,12 +9,17 @@ export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 export const loader = async ({ request }) => {
   try {
     console.log("App loader - authenticating...");
-    await authenticate.admin(request);
-    console.log("Authentication successful");
+    const session = await authenticate.admin(request);
+    console.log("Authenticated session:", session);
+
+    if (!session) {
+      throw new Error("No session found");
+    }
+
     return { apiKey: process.env.SHOPIFY_API_KEY || "" };
   } catch (error) {
     console.error("Error in app loader:", error.message);
-    throw error;
+    throw new Response("Authentication failed", { status: 401 });
   }
 };
 

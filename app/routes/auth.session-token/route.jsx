@@ -28,10 +28,7 @@ export default function SessionTokenPage() {
   }, []);
 
   useEffect(() => {
-    // Validar y enviar el token al backend
-    if (!apiKey || !urlParams.host || error) return;
-
-    async function fetchSessionToken() {
+    async function initializeApp() {
       try {
         const app = createApp({ apiKey, host: urlParams.host });
         const token = await getSessionToken(app);
@@ -40,20 +37,26 @@ export default function SessionTokenPage() {
         const response = await fetch("/api/session-token", {
           headers: { Authorization: `Bearer ${token}` },
         });
-
+  
+        if (!response.ok) {
+          const text = await response.text();
+          throw new Error(`Backend Error: ${text}`);
+        }
+  
         const result = await response.json();
-        if (result.success) {
-          setBackendResponse(result);
-        } else {
+        if (!result.success) {
           throw new Error(result.error);
         }
+  
+        setBackendResponse(result);
       } catch (err) {
+        console.error("Error in session-token fetch:", err.message);
         setError(err.message);
       }
     }
 
-    fetchSessionToken();
-  }, [apiKey, urlParams]);
+    initializeApp();
+  }, [apiKey]);  
 
   return (
     <div>
