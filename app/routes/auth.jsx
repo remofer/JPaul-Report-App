@@ -7,7 +7,7 @@ export const loader = async ({ request }) => {
 
   if (shop) {
     // Redirige al dashboard u otra página
-    return redirect(`/`);
+    return redirect(`/app`);
   }
 
   return redirect(`/error?message=missing-shop`);
