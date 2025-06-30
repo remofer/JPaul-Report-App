@@ -31,12 +31,19 @@ export async function loader({ request }) {
     return json({ success: false, error: "Authorization header missing" }, { status: 401 });
   }
 
+  const secretKey = process.env.SHOPIFY_API_SECRET_KEY;
+  if (!secretKey) {
+    console.error("SHOPIFY_API_SECRET_KEY no está definido.");
+    return json({ success: false, error: "Server configuration error" }, { status: 500 });
+  }
+
   try {
     const token = authHeader.replace("Bearer ", "");
-    const decoded = jwt.verify(token, process.env.SHOPIFY_API_KEY);
+    const decoded = jwt.verify(token, secretKey);
 
     return json({ success: true, data: decoded });
   } catch (error) {
+    console.error("Error al verificar el token:", error.message);
     return json({ success: false, error: error.message }, { status: 401 });
   }
 }
