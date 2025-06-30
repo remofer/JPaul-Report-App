@@ -1,77 +1,12 @@
-import { useState, useEffect } from "react";
-import { Form, json, redirect, useActionData, useLoaderData } from "@remix-run/react";
-import {
-  AppProvider as PolarisAppProvider,
-  Button,
-  Card,
-  FormLayout,
-  Page,
-  Text,
-  TextField,
-} from "@shopify/polaris";
+import { useEffect, useState } from "react";
+import { Form, useLoaderData, useActionData } from "@remix-run/react";
+import { AppProvider as PolarisAppProvider, Button, Card, FormLayout, Page, TextField } from "@shopify/polaris";
+import createApp from "@shopify/app-bridge";
+import { Redirect } from "@shopify/app-bridge/actions";
 import polarisTranslations from "@shopify/polaris/locales/en.json";
 import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
-import { login } from "../../shopify.server";
-import { loginErrorMessage } from "./error.server";
-import jwt from "jsonwebtoken";
-
 
 export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
-
-export const loader = async ({ request }) => {
-  try {
-    const sessionToken = request.headers.get("Authorization");
-    if (sessionToken) {
-      // Verificar si el token es válido
-      const decoded = jwt.verify(
-        sessionToken.replace("Bearer ", ""),
-        process.env.SHOPIFY_API_SECRET_KEY
-      );
-      if (decoded) {
-        // Si el token es válido, redirige al área de la app
-        return redirect("/app");
-      }
-    }
-
-    const errors = loginErrorMessage(await login(request));
-    return { errors, polarisTranslations };
-  } catch (error) {
-    console.error("Error in loader function:", error);
-    return json(
-      { errors: { shop: "An error occurred while loading the login page." } },
-      { status: 500 }
-    );
-  }
-};
-
-export const action = async ({ request }) => {
-  try {
-    const formData = await request.formData();
-    const shop = formData.get("shop");
-
-    if (!shop) {
-      throw new Error("Missing shop parameter");
-    }
-
-    // Validar que el dominio tenga un formato correcto
-    const shopRegex = /^[a-zA-Z0-9-]+\.myshopify\.com$/;
-    if (!shopRegex.test(shop)) {
-      throw new Error("Invalid shop domain");
-    }
-
-    const shopDomain = shop.replace(/\.myshopify\.com$/, "");
-    const authUrl = `https://admin.shopify.com/store/${shopDomain}/oauth/install?client_id=50ff88a57d12509b08b03a5930423629`;
-
-    console.log("Auth URL generated:", authUrl);
-    return json({ authUrl });
-  } catch (error) {
-    console.error("Error in action function:", error);
-    return json(
-      { errors: { shop: error.message } },
-      { status: 400 }
-    );
-  }
-};
 
 export default function Auth() {
   const loaderData = useLoaderData();
@@ -79,16 +14,25 @@ export default function Auth() {
   const [shop, setShop] = useState("");
   const { errors } = actionData || loaderData;
 
-  console.log("Rendered component with loaderData:", loaderData);
-  console.log("Rendered component with actionData:", actionData);
-
-  // Manejo del redireccionamiento basado en la respuesta del servidor
   useEffect(() => {
-    if (actionData?.authUrl) {
-      console.log("Redirecting to authUrl:", actionData.authUrl);
+    if (window.top !== window.self) {
+      // Estás dentro de un iframe
+      const app = createApp({
+        apiKey: loaderData.polarisTranslations.Polaris.apiKey,
+        host: new URLSearchParams(window.location.search).get("host"),
+      });
+
+      const redirect = Redirect.create(app);
+
+      if (actionData?.authUrl) {
+        console.log("Redirecting to authUrl:", actionData.authUrl);
+        redirect.dispatch(Redirect.Action.REMOTE, actionData.authUrl);
+      }
+    } else if (actionData?.authUrl) {
+      // Redirección normal fuera de iframe
       window.location.href = actionData.authUrl;
     }
-  }, [actionData?.authUrl]);
+  }, [actionData]);
 
   return (
     <PolarisAppProvider i18n={loaderData.polarisTranslations}>
@@ -96,9 +40,6 @@ export default function Auth() {
         <Card>
           <Form method="post">
             <FormLayout>
-              <Text variant="headingMd" as="h2">
-                Log in
-              </Text>
               <TextField
                 type="text"
                 name="shop"

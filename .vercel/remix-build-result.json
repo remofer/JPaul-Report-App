@@ -11,6 +11,7 @@
     },
     "routeIdToServerBundleId": {
       "routes/api.auth.callback": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/api.session-token": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
       "routes/inventory-update": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
       "routes/locations": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
       "routes/_index": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
@@ -34,6 +35,15 @@
         "parentId": "root",
         "file": "app/routes/api.auth.callback/route.jsx",
         "path": "api/auth/callback",
+        "config": {
+          "runtime": "nodejs"
+        }
+      },
+      "routes/api.session-token": {
+        "id": "routes/api.session-token",
+        "parentId": "root",
+        "file": "app/routes/api.session-token/route.jsx",
+        "path": "api/session-token",
         "config": {
           "runtime": "nodejs"
         }
@@ -153,6 +163,12 @@
         "parentId": "root",
         "file": "routes/api.auth.callback/route.jsx",
         "path": "api/auth/callback"
+      },
+      "routes/api.session-token": {
+        "id": "routes/api.session-token",
+        "parentId": "root",
+        "file": "routes/api.session-token/route.jsx",
+        "path": "api/session-token"
       },
       "routes/inventory-update": {
         "id": "routes/inventory-update",
