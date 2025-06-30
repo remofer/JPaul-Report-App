@@ -14,7 +14,7 @@ export async function loader({ request }) {
   } catch (error) {
     console.error("Error verifying session token:", error.message);
     // Token inválido o error: redirige a login o error
-    return redirect("auth/login");
+    return redirect("/auth/login");
   }
 }
 
