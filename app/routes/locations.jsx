@@ -1,18 +1,29 @@
-// app/routes/api/locations.jsx
 import { json } from "@remix-run/node";
 
-export const loader = async () => {
+export const loader = async ({ request }) => {
   const shop = process.env.SHOPIFY_SHOP;
   const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
-  console.log("SHOPIFY_SHOP:", process.env.SHOPIFY_SHOP);
-console.log("SHOPIFY_ACCESS_TOKEN:", process.env.SHOPIFY_ACCESS_TOKEN);
 
+  console.log("SHOPIFY_SHOP:", shop);
+  console.log("SHOPIFY_ACCESS_TOKEN:", accessToken);
 
   try {
+    // Validar el header de autorización para tokens de sesión
+    const authHeader = request.headers.get("Authorization");
+    if (!authHeader) {
+      return json({ error: "Authorization header missing" }, { status: 401 });
+    }
+
+    // Validar el token de sesión si es necesario
+    const sessionToken = authHeader.replace("Bearer ", "");
+    console.log("Session Token Received:", sessionToken);
+
+    // Realizar la solicitud a Shopify para obtener las ubicaciones
     const response = await fetch(`https://${shop}/admin/api/2023-01/locations.json`, {
       headers: {
         "Content-Type": "application/json",
         "X-Shopify-Access-Token": accessToken,
+        Authorization: `Bearer ${sessionToken}`, // Agregar si es necesario para validaciones
       },
     });
 
@@ -20,10 +31,12 @@ console.log("SHOPIFY_ACCESS_TOKEN:", process.env.SHOPIFY_ACCESS_TOKEN);
       const data = await response.json();
       return json(data.locations);
     } else {
-      throw new Response("Failed to fetch locations", { status: response.status });
+      console.error("Error fetching locations from Shopify:", response.statusText);
+      return json({ error: "Failed to fetch locations from Shopify" }, { status: response.status });
     }
-  } catch {
-    throw new Response("Server error while fetching locations", { status: 500 });
+  } catch (error) {
+    console.error("Server error while fetching locations:", error.message);
+    return json({ error: "Server error while fetching locations" }, { status: 500 });
   }
 };
 // import { json } from "@remix-run/node";
