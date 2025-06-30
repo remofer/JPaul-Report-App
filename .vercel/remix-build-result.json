@@ -1,0 +1,233 @@
+{
+  "buildManifest": {
+    "serverBundles": {
+      "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0": {
+        "id": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
+        "file": "build/server/nodejs-eyJydW50aW1lIjoibm9kZWpzIn0/index.js",
+        "config": {
+          "runtime": "nodejs"
+        }
+      }
+    },
+    "routeIdToServerBundleId": {
+      "routes/api.auth.callback": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/inventory-update": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/locations": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/_index": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/auth": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/auth.shopify.callback": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/auth.session-token": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/auth.callback": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/auth.login": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/auth.$": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/app._index": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0"
+    },
+    "routes": {
+      "root": {
+        "path": "",
+        "id": "root",
+        "file": "app/root.jsx",
+        "config": {}
+      },
+      "routes/api.auth.callback": {
+        "id": "routes/api.auth.callback",
+        "parentId": "root",
+        "file": "app/routes/api.auth.callback/route.jsx",
+        "path": "api/auth/callback",
+        "config": {
+          "runtime": "nodejs"
+        }
+      },
+      "routes/inventory-update": {
+        "id": "routes/inventory-update",
+        "parentId": "root",
+        "file": "app/routes/inventory-update.jsx",
+        "path": "inventory-update",
+        "config": {
+          "runtime": "nodejs"
+        }
+      },
+      "routes/locations": {
+        "id": "routes/locations",
+        "parentId": "root",
+        "file": "app/routes/locations.jsx",
+        "path": "locations",
+        "config": {
+          "runtime": "nodejs"
+        }
+      },
+      "routes/_index": {
+        "id": "routes/_index",
+        "parentId": "root",
+        "file": "app/routes/_index/route.jsx",
+        "index": true,
+        "config": {
+          "runtime": "nodejs"
+        }
+      },
+      "routes/auth": {
+        "id": "routes/auth",
+        "parentId": "root",
+        "file": "app/routes/auth.jsx",
+        "path": "auth",
+        "config": {
+          "runtime": "nodejs"
+        }
+      },
+      "routes/auth.shopify.callback": {
+        "id": "routes/auth.shopify.callback",
+        "parentId": "routes/auth",
+        "file": "app/routes/auth.shopify.callback/route.jsx",
+        "path": "shopify/callback",
+        "config": {}
+      },
+      "routes/auth.session-token": {
+        "id": "routes/auth.session-token",
+        "parentId": "routes/auth",
+        "file": "app/routes/auth.session-token/route.jsx",
+        "path": "session-token",
+        "config": {}
+      },
+      "routes/auth.callback": {
+        "id": "routes/auth.callback",
+        "parentId": "routes/auth",
+        "file": "app/routes/auth.callback/route.jsx",
+        "path": "callback",
+        "config": {}
+      },
+      "routes/auth.login": {
+        "id": "routes/auth.login",
+        "parentId": "routes/auth",
+        "file": "app/routes/auth.login/route.jsx",
+        "path": "login",
+        "config": {}
+      },
+      "routes/auth.$": {
+        "id": "routes/auth.$",
+        "parentId": "routes/auth",
+        "file": "app/routes/auth.$/route.jsx",
+        "path": "*",
+        "config": {}
+      },
+      "routes/app": {
+        "id": "routes/app",
+        "parentId": "root",
+        "file": "app/routes/app.jsx",
+        "path": "app",
+        "config": {}
+      },
+      "routes/app._index": {
+        "id": "routes/app._index",
+        "parentId": "routes/app",
+        "file": "app/routes/app._index.jsx",
+        "index": true,
+        "config": {
+          "runtime": "nodejs"
+        }
+      }
+    }
+  },
+  "remixConfig": {
+    "appDirectory": "/Users/bellorin/Desktop/j-paul-report/app",
+    "basename": "/",
+    "buildDirectory": "/Users/bellorin/Desktop/j-paul-report/build",
+    "future": {
+      "v3_fetcherPersist": true,
+      "v3_relativeSplatPath": true,
+      "v3_throwAbortReason": true,
+      "v3_routeConfig": true,
+      "v3_singleFetch": false,
+      "v3_lazyRouteDiscovery": true,
+      "unstable_optimizeDeps": false
+    },
+    "manifest": false,
+    "publicPath": "/",
+    "routes": {
+      "root": {
+        "path": "",
+        "id": "root",
+        "file": "root.jsx"
+      },
+      "routes/api.auth.callback": {
+        "id": "routes/api.auth.callback",
+        "parentId": "root",
+        "file": "routes/api.auth.callback/route.jsx",
+        "path": "api/auth/callback"
+      },
+      "routes/inventory-update": {
+        "id": "routes/inventory-update",
+        "parentId": "root",
+        "file": "routes/inventory-update.jsx",
+        "path": "inventory-update"
+      },
+      "routes/locations": {
+        "id": "routes/locations",
+        "parentId": "root",
+        "file": "routes/locations.jsx",
+        "path": "locations"
+      },
+      "routes/_index": {
+        "id": "routes/_index",
+        "parentId": "root",
+        "file": "routes/_index/route.jsx",
+        "index": true
+      },
+      "routes/auth": {
+        "id": "routes/auth",
+        "parentId": "root",
+        "file": "routes/auth.jsx",
+        "path": "auth"
+      },
+      "routes/auth.shopify.callback": {
+        "id": "routes/auth.shopify.callback",
+        "parentId": "routes/auth",
+        "file": "routes/auth.shopify.callback/route.jsx",
+        "path": "shopify/callback"
+      },
+      "routes/auth.session-token": {
+        "id": "routes/auth.session-token",
+        "parentId": "routes/auth",
+        "file": "routes/auth.session-token/route.jsx",
+        "path": "session-token"
+      },
+      "routes/auth.callback": {
+        "id": "routes/auth.callback",
+        "parentId": "routes/auth",
+        "file": "routes/auth.callback/route.jsx",
+        "path": "callback"
+      },
+      "routes/auth.login": {
+        "id": "routes/auth.login",
+        "parentId": "routes/auth",
+        "file": "routes/auth.login/route.jsx",
+        "path": "login"
+      },
+      "routes/auth.$": {
+        "id": "routes/auth.$",
+        "parentId": "routes/auth",
+        "file": "routes/auth.$/route.jsx",
+        "path": "*"
+      },
+      "routes/app": {
+        "id": "routes/app",
+        "parentId": "root",
+        "file": "routes/app.jsx",
+        "path": "app"
+      },
+      "routes/app._index": {
+        "id": "routes/app._index",
+        "parentId": "routes/app",
+        "file": "routes/app._index.jsx",
+        "index": true
+      }
+    },
+    "serverBuildFile": "index.js",
+    "serverModuleFormat": "esm",
+    "ssr": true
+  },
+  "viteConfig": {
+    "build": {
+      "assetsDir": "assets"
+    }
+  }
+}
