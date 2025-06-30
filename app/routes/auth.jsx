@@ -4,10 +4,11 @@ import { redirect } from "@remix-run/node";
 export const loader = async ({ request }) => {
   const url = new URL(request.url);
   const shop = url.searchParams.get("shop");
-
+  const host = process.env.HOST || `${request.headers.get("x-forwarded-proto") || "http"}://${request.headers.get("host")}`;
+  console.log(host,shop,"XDDD");
   if (shop) {
     // Redirige al dashboard u otra página
-    return redirect(`/`);
+    return redirect(`/app?shop=${shop}${host ? `&host=${host}` : ""}`);
   }
 
   return redirect(`/error?message=missing-shop`);
