@@ -8,6 +8,12 @@ export const loader = () => {
   });
 };
  
+export const headers = () => {
+  return {
+    "Content-Security-Policy": "frame-ancestors https://admin.shopify.com https://*.myshopify.com",
+  };
+};
+
 export default function App() {
   const { ENV } = useLoaderData();
 
@@ -28,7 +34,6 @@ export default function App() {
         <Outlet />
         <ScrollRestoration />
         <Scripts />
-        {/* Inyecta las variables de entorno correctamente */}
         <script
           dangerouslySetInnerHTML={{
             __html: `window.ENV = ${JSON.stringify(ENV)};`,
