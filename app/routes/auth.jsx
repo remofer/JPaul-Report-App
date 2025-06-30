@@ -1,12 +1,18 @@
 // routes/auth.jsx
+import { redirect } from "@remix-run/node";
 
-import { json } from "@remix-run/node";
+export const loader = async ({ request }) => {
+  const url = new URL(request.url);
+  const shop = url.searchParams.get("shop");
 
-export const loader = async () => {
-  return json({});
+  if (shop) {
+    // Redirige al dashboard u otra página
+    return redirect(`/dashboard?shop=${shop}`);
+  }
+
+  return redirect(`/error?message=missing-shop`);
 };
 
-// También exporta el componente o contenido que quieras mostrar en /auth
 export default function AuthPage() {
   return <div>Loading or redirecting...</div>;
 }
