@@ -1,3 +1,15 @@
+// routes/auth.jsx
+
+import { json } from "@remix-run/node";
+
+export const loader = async () => {
+  return json({});
+};
+
+// También exporta el componente o contenido que quieras mostrar en /auth
+export default function AuthPage() {
+  return <div>Loading or redirecting...</div>;
+}
 // import { redirect } from "@remix-run/node";
 // import { authenticate } from "../shopify.server";
 
