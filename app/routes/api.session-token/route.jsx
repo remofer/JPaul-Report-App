@@ -33,7 +33,7 @@ export async function loader({ request }) {
 
   try {
     const token = authHeader.replace("Bearer ", "");
-    const decoded = jwt.verify(token, process.env.SHOPIFY_API_SECRET_KEY);
+    const decoded = jwt.verify(token, process.env.SHOPIFY_API_KEY);
 
     return json({ success: true, data: decoded });
   } catch (error) {
