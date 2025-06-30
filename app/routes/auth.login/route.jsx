@@ -1,6 +1,13 @@
 import { useEffect, useState } from "react";
 import { Form, useLoaderData, useActionData } from "@remix-run/react";
-import { AppProvider as PolarisAppProvider, Button, Card, FormLayout, Page, TextField } from "@shopify/polaris";
+import {
+  AppProvider as PolarisAppProvider,
+  Button,
+  Card,
+  FormLayout,
+  Page,
+  TextField,
+} from "@shopify/polaris";
 import createApp from "@shopify/app-bridge";
 import { Redirect } from "@shopify/app-bridge/actions";
 import polarisTranslations from "@shopify/polaris/locales/en.json";
@@ -15,27 +22,42 @@ export default function Auth() {
   const { errors } = actionData || loaderData;
 
   useEffect(() => {
-    if (window.top !== window.self) {
-      // Estás dentro de un iframe
-      const app = createApp({
-        apiKey: loaderData.polarisTranslations.Polaris.apiKey,
-        host: new URLSearchParams(window.location.search).get("host"),
-      });
+    async function handleRedirection() {
+      try {
+        const host = new URLSearchParams(window.location.search).get("host");
+        const apiKey = loaderData?.polarisTranslations?.Polaris?.apiKey;
 
-      const redirect = Redirect.create(app);
+        if (!host || !apiKey) {
+          console.error("Host or API Key missing");
+          return;
+        }
 
-      if (actionData?.authUrl) {
-        console.log("Redirecting to authUrl:", actionData.authUrl);
-        redirect.dispatch(Redirect.Action.REMOTE, actionData.authUrl);
+        const app = createApp({
+          apiKey,
+          host,
+        });
+
+        const redirect = Redirect.create(app);
+
+        if (actionData?.authUrl) {
+          if (window.top !== window.self) {
+            console.log("Redirecting inside iframe:", actionData.authUrl);
+            redirect.dispatch(Redirect.Action.REMOTE, actionData.authUrl);
+          } else {
+            console.log("Redirecting outside iframe:", actionData.authUrl);
+            window.location.href = actionData.authUrl;
+          }
+        }
+      } catch (error) {
+        console.error("Error during redirection:", error);
       }
-    } else if (actionData?.authUrl) {
-      // Redirección normal fuera de iframe
-      window.location.href = actionData.authUrl;
     }
-  }, [actionData]);
+
+    handleRedirection();
+  }, [actionData, loaderData]);
 
   return (
-    <PolarisAppProvider i18n={loaderData.polarisTranslations}>
+    <PolarisAppProvider i18n={polarisTranslations}>
       <Page>
         <Card>
           <Form method="post">
@@ -58,6 +80,7 @@ export default function Auth() {
     </PolarisAppProvider>
   );
 }
+
 // import { json, redirect } from "@remix-run/node";
 // import { useState } from "react";
 // import { useActionData } from "@remix-run/react";
