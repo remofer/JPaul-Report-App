@@ -1,20 +1,26 @@
-// routes/auth.jsx
 import { redirect } from "@remix-run/node";
+
+const isValidShop = (shop) => /^[a-zA-Z0-9][a-zA-Z0-9-]*\.myshopify\.com$/.test(shop);
 
 export const loader = async ({ request }) => {
   const url = new URL(request.url);
   const shop = url.searchParams.get("shop");
 
-  if (shop) {
-    // Redirige al dashboard u otra página
-    return redirect(`/app`);
+  if (shop && isValidShop(shop)) {
+    const host = url.searchParams.get("host");
+    return redirect(`/app?shop=${shop}${host ? `&host=${host}` : ""}`);
   }
 
-  return redirect(`/error?message=missing-shop`);
+  return redirect(`/error?message=missing-or-invalid-shop`);
 };
 
 export default function AuthPage() {
-  return <div>Loading or redirecting...</div>;
+  return (
+    <div style={{ textAlign: "center", marginTop: "2rem" }}>
+      <h1>Authenticating...</h1>
+      <p>Please wait while we verify your credentials.</p>
+    </div>
+  );
 }
 // import { redirect } from "@remix-run/node";
 // import { authenticate } from "../shopify.server";
