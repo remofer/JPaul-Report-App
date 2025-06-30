@@ -1,4 +1,4 @@
-import { json } from "@remix-run/node";
+import { json, redirect } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
 import createApp from "@shopify/app-bridge";
 import { getSessionToken } from "@shopify/app-bridge/utilities";
@@ -13,22 +13,19 @@ export const loader = async () => {
 export default function SessionTokenPage() {
   const { apiKey } = useLoaderData();
   const [sessionToken, setSessionToken] = useState(null);
-  const [backendResponse, setBackendResponse] = useState(null);
-  const [urlParams, setUrlParams] = useState({});
 
   useEffect(() => {
-    // Obtener parámetros de la URL
-    const params = Object.fromEntries(new URLSearchParams(window.location.search).entries());
-    setUrlParams(params);
-  }, []);
+    async function initializeApp() {
+      const params = new URLSearchParams(window.location.search);
+      const host = params.get("host");
 
-  useEffect(() => {
-    // Obtener el token de sesión y enviarlo al backend
-    if (!apiKey || !urlParams.host) return;
+      if (!host) {
+        console.error("Host parameter missing");
+        return;
+      }
 
-    async function fetchSessionToken() {
       try {
-        const app = createApp({ apiKey, host: urlParams.host });
+        const app = createApp({ apiKey, host });
         const token = await getSessionToken(app);
         setSessionToken(token);
 
@@ -37,37 +34,27 @@ export default function SessionTokenPage() {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        const json = await response.json();
-        setBackendResponse(json);
+        const result = await response.json();
+        if (result.success) {
+          // Redirigir a la aplicación
+          window.location.href = "/app";
+        } else {
+          throw new Error(result.error);
+        }
       } catch (err) {
-        console.error("Error fetching token:", err.message);
+        console.error("Error initializing app:", err.message);
+        window.location.href = `/error?message=${encodeURIComponent(err.message)}`;
       }
     }
 
-    fetchSessionToken();
-  }, [apiKey, urlParams]);
+    initializeApp();
+  }, [apiKey]);
 
-  return (
-    <div>
-      <h1>Session Token Debug</h1>
-      <h2>Parámetros de la URL</h2>
-      <pre>{JSON.stringify(urlParams, null, 2)}</pre>
+  if (!sessionToken) {
+    return <div>Initializing session...</div>;
+  }
 
-      {sessionToken && (
-        <>
-          <h2>Session Token</h2>
-          <pre>{sessionToken}</pre>
-        </>
-      )}
-
-      {backendResponse && (
-        <>
-          <h2>Respuesta del Backend</h2>
-          <pre>{JSON.stringify(backendResponse, null, 2)}</pre>
-        </>
-      )}
-    </div>
-  );
+  return <div>Redirecting to the app...</div>;
 }
 // // import { json } from "@remix-run/node";
 // // import { useEffect, useState } from "react";

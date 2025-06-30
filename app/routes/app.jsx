@@ -7,13 +7,19 @@ import { authenticate } from "../shopify.server";
 export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 
 export const loader = async ({ request }) => {
+  // Autenticar sesión admin
   await authenticate.admin(request);
   return { apiKey: process.env.SHOPIFY_API_KEY || "" };
 };
 
 export default function App() {
   const { apiKey } = useLoaderData();
-  return <AppProvider isEmbeddedApp apiKey={apiKey}><Outlet /></AppProvider>;
+
+  return (
+    <AppProvider isEmbeddedApp apiKey={apiKey}>
+      <Outlet />
+    </AppProvider>
+  );
 }
 
 export function ErrorBoundary() {

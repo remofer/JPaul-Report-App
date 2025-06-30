@@ -1,16 +1,24 @@
 import { json } from "@remix-run/node";
-import jwt from "jsonwebtoken"; 
+import jwt from "jsonwebtoken";
 
 export async function loader({ request }) {
   const authHeader = request.headers.get("Authorization");
 
   if (!authHeader) {
-    return json({ success: false, error: "Authorization header missing" }, { status: 401 });
+    return json(
+      { success: false, error: "Authorization header missing" },
+      { status: 401 }
+    );
   }
 
   try {
     const token = authHeader.replace("Bearer ", "");
     const decoded = jwt.verify(token, process.env.SHOPIFY_API_SECRET_KEY);
+
+    // Aquí podrías validar datos específicos, como `shop`
+    if (!decoded || !decoded.dest) {
+      throw new Error("Invalid token");
+    }
 
     return json({ success: true, data: decoded });
   } catch (error) {
@@ -19,5 +27,5 @@ export async function loader({ request }) {
 }
 
 export function ErrorBoundary() {
-  return <div>Error en la API session-token.</div>;
+  return <div>Error en la API de validación de tokens.</div>;
 }
