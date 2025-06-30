@@ -12,15 +12,23 @@ import createApp from "@shopify/app-bridge";
 import { Redirect } from "@shopify/app-bridge/actions";
 import polarisTranslations from "@shopify/polaris/locales/en.json";
 import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
+import { json } from "@remix-run/node";
 
 export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 
-// Loader para manejar datos iniciales (ajústalo si es necesario)
-export const loader = async () => {
-  return { errors: null }; // Ajusta según tus necesidades
+export const loader = async ({ request }) => {
+  const url = new URL(request.url);
+  const host = url.searchParams.get("host") || null;
+  const apiKey = process.env.SHOPIFY_API_KEY || null;
+
+  return json({
+    host,
+    apiKey,
+    errors: null,
+    polarisTranslations,
+  });
 };
 
-// Action para manejar el envío del formulario
 export const action = async ({ request }) => {
   try {
     const formData = await request.formData();
@@ -30,16 +38,12 @@ export const action = async ({ request }) => {
       throw new Error("El dominio de la tienda es requerido.");
     }
 
-    // Lógica para procesar el dominio de la tienda
     const shopDomain = shop.replace(/\.myshopify\.com$/, "");
     const authUrl = `https://admin.shopify.com/store/${shopDomain}/oauth/install`;
 
-    console.log("Auth URL generada:", authUrl);
-
-    return { authUrl };
+    return json({ authUrl });
   } catch (error) {
-    console.error("Error en la acción:", error);
-    return { errors: { shop: error.message || "Error desconocido." } };
+    return json({ errors: { shop: error.message || "Error desconocido." } });
   }
 };
 
@@ -55,15 +59,14 @@ export default function Auth() {
 
   useEffect(() => {
     async function handleRedirection() {
+      const { host, apiKey } = loaderData;
+
+      if (!host || !apiKey) {
+        console.error("Host or API Key missing");
+        return;
+      }
+
       try {
-        const host = new URLSearchParams(window.location.search).get("host");
-        const apiKey = loaderData?.polarisTranslations?.Polaris?.apiKey;
-
-        if (!host || !apiKey) {
-          console.error("Host or API Key missing");
-          return;
-        }
-
         const app = createApp({
           apiKey,
           host,
@@ -89,7 +92,7 @@ export default function Auth() {
   }, [actionData, loaderData]);
 
   return (
-    <PolarisAppProvider i18n={polarisTranslations}>
+    <PolarisAppProvider i18n={loaderData.polarisTranslations}>
       <Page>
         <Card>
           <Form method="post">
