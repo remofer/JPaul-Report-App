@@ -49,7 +49,6 @@ import { getSessionToken } from "@shopify/app-bridge/utilities";
 import React, { useEffect, useState } from "react";
 
 export const loader = async ({ request }) => {
-  // No chequeas Authorization aquí porque es la página que se carga sin token
   return json({
     apiKey: process.env.SHOPIFY_API_KEY,
   });
@@ -57,9 +56,8 @@ export const loader = async ({ request }) => {
 
 export default function SessionTokenRoute() {
   const { apiKey } = useLoaderData();
-  const [sessionToken, setSessionToken] = useState(null);
-  const [backendResponse, setBackendResponse] = useState(null);
   const [urlParams, setUrlParams] = useState({});
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const params = Object.fromEntries(new URLSearchParams(window.location.search).entries());
@@ -73,7 +71,6 @@ export default function SessionTokenRoute() {
       try {
         const app = createApp({ apiKey, host: urlParams.host });
         const token = await getSessionToken(app);
-        setSessionToken(token);
 
         const response = await fetch("/api/session-token", {
           method: "GET",
@@ -85,37 +82,18 @@ export default function SessionTokenRoute() {
           throw new Error(`Fetch error: ${text}`);
         }
 
-        const json = await response.json();
-        setBackendResponse(json);
+        // Si la validación es exitosa, redirige a la app
+        window.location.href = "/app";
       } catch (err) {
-        console.error("Client Error:", err.message);
+        setError(err.message);
       }
     }
 
     fetchToken();
   }, [apiKey, urlParams]);
 
-  return (
-    <div>
-      <h1>Session Token Route</h1>
-      <h2>Parámetros de la URL</h2>
-      <pre>{JSON.stringify(urlParams, null, 2)}</pre>
-
-      {sessionToken && (
-        <>
-          <h2>Session Token Obtenido</h2>
-          <pre>{sessionToken}</pre>
-        </>
-      )}
-
-      {backendResponse && (
-        <>
-          <h2>Respuesta del Backend</h2>
-          <pre>{JSON.stringify(backendResponse, null, 2)}</pre>
-        </>
-      )}
-    </div>
-  );
+  if (error) return <div>Error: {error}</div>;
+  return <div>Verificando sesión...</div>;
 }
 
 
