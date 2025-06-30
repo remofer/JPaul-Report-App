@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Form, useLoaderData, useActionData } from "@remix-run/react";
 import {
   AppProvider as PolarisAppProvider,
@@ -16,10 +16,14 @@ import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
 export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 
 export default function Auth() {
-  const loaderData = useLoaderData();
-  const actionData = useActionData();
+  const rawLoaderData = useLoaderData();
+  const rawActionData = useActionData();
+
+  const loaderData = useMemo(() => rawLoaderData || {}, [rawLoaderData]);
+  const actionData = useMemo(() => rawActionData || {}, [rawActionData]);
+
   const [shop, setShop] = useState("");
-  const { errors } = actionData || loaderData;
+  const errors = actionData.errors || loaderData.errors || {};
 
   useEffect(() => {
     async function handleRedirection() {
