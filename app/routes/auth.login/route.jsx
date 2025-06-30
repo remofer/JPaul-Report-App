@@ -15,6 +15,34 @@ import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
 
 export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 
+// Loader para manejar datos iniciales (ajústalo si es necesario)
+export const loader = async () => {
+  return { errors: null }; // Ajusta según tus necesidades
+};
+
+// Action para manejar el envío del formulario
+export const action = async ({ request }) => {
+  try {
+    const formData = await request.formData();
+    const shop = formData.get("shop");
+
+    if (!shop) {
+      throw new Error("El dominio de la tienda es requerido.");
+    }
+
+    // Lógica para procesar el dominio de la tienda
+    const shopDomain = shop.replace(/\.myshopify\.com$/, "");
+    const authUrl = `https://admin.shopify.com/store/${shopDomain}/oauth/install`;
+
+    console.log("Auth URL generada:", authUrl);
+
+    return { authUrl };
+  } catch (error) {
+    console.error("Error en la acción:", error);
+    return { errors: { shop: error.message || "Error desconocido." } };
+  }
+};
+
 export default function Auth() {
   const rawLoaderData = useLoaderData();
   const rawActionData = useActionData();
