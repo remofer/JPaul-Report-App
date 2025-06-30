@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Form, json, useActionData, useLoaderData } from "@remix-run/react";
+import { Form, json, redirect, useActionData, useLoaderData } from "@remix-run/react";
 import {
   AppProvider as PolarisAppProvider,
   Button,
@@ -13,20 +13,30 @@ import polarisTranslations from "@shopify/polaris/locales/en.json";
 import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
 import { login } from "../../shopify.server";
 import { loginErrorMessage } from "./error.server";
+import jwt from "jsonwebtoken";
+
 
 export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 
 export const loader = async ({ request }) => {
-  console.log("Loader function called with request:", request.url);
-
   try {
-    const errors = loginErrorMessage(await login(request));
-    console.log("Errors returned from login in loader:", errors);
+    const sessionToken = request.headers.get("Authorization");
+    if (sessionToken) {
+      // Verificar si el token es válido
+      const decoded = jwt.verify(
+        sessionToken.replace("Bearer ", ""),
+        process.env.SHOPIFY_API_SECRET_KEY
+      );
+      if (decoded) {
+        // Si el token es válido, redirige al área de la app
+        return redirect("/app");
+      }
+    }
 
+    const errors = loginErrorMessage(await login(request));
     return { errors, polarisTranslations };
   } catch (error) {
     console.error("Error in loader function:", error);
-
     return json(
       { errors: { shop: "An error occurred while loading the login page." } },
       { status: 500 }
@@ -38,20 +48,27 @@ export const action = async ({ request }) => {
   try {
     const formData = await request.formData();
     const shop = formData.get("shop");
-    if (!shop) throw new Error("Missing shop parameter");
 
-    // Asegúrate de que el parámetro `shop` no contenga `.myshopify.com`
+    if (!shop) {
+      throw new Error("Missing shop parameter");
+    }
+
+    // Validar que el dominio tenga un formato correcto
+    const shopRegex = /^[a-zA-Z0-9-]+\.myshopify\.com$/;
+    if (!shopRegex.test(shop)) {
+      throw new Error("Invalid shop domain");
+    }
+
     const shopDomain = shop.replace(/\.myshopify\.com$/, "");
-
     const authUrl = `https://admin.shopify.com/store/${shopDomain}/oauth/install?client_id=50ff88a57d12509b08b03a5930423629`;
-    console.log("Auth URL generated:", authUrl);
 
+    console.log("Auth URL generated:", authUrl);
     return json({ authUrl });
   } catch (error) {
     console.error("Error in action function:", error);
     return json(
-      { errors: { shop: "Authentication failed. Please check your input or server configuration." } },
-      { status: 500 }
+      { errors: { shop: error.message } },
+      { status: 400 }
     );
   }
 };
@@ -69,9 +86,9 @@ export default function Auth() {
   useEffect(() => {
     if (actionData?.authUrl) {
       console.log("Redirecting to authUrl:", actionData.authUrl);
-      window.location.href = actionData.authUrl; // Redirecciona al usuario
+      window.location.href = actionData.authUrl;
     }
-  }, [actionData]);
+  }, [actionData?.authUrl]);
 
   return (
     <PolarisAppProvider i18n={loaderData.polarisTranslations}>
