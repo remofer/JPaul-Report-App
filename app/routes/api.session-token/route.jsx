@@ -1,5 +1,5 @@
 import { json } from "@remix-run/node";
-import jwt from "jsonwebtoken";
+import jwt from "jsonwebtoken"; 
 
 export async function loader({ request }) {
   const authHeader = request.headers.get("Authorization");
