@@ -3,7 +3,7 @@ import { json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
 import { AppProvider, Page } from "@shopify/polaris";
 import polarisTranslations from "@shopify/polaris/locales/en.json";
-import FileUploader from "../components/FileUploader"; // Ajusta el path según corresponda
+import FileUploader from "../../components/FileUploader";
 
 // Loader para pasar la variable SHOPIFY_API_KEY al cliente
 export async function loader() {
