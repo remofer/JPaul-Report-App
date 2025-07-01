@@ -39,6 +39,7 @@ function FileUploader() {
 
         const token = await getSessionToken(app);
         setSessionToken(token);
+        console.log(process.env.SHOPIFY_API_KEY,"XDDDD")
         console.log("Session Token initialized:", token);
       } catch (error) {
         console.error("Error initializing App Bridge:", error.message);
