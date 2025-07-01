@@ -10,6 +10,8 @@ export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 export const loader = async ({ request }) => {
   try {
     console.log("App loader - authenticating...");
+
+    // Intentar autenticar al administrador
     const { session, redirect: redirectTo } = await authenticate.admin(request);
 
     if (redirectTo) {
@@ -18,14 +20,19 @@ export const loader = async ({ request }) => {
     }
 
     if (!session || !session.shop) {
-      throw new Error("Session is missing or invalid");
+      console.error("Session is invalid or missing:", session);
+      throw new Error("Invalid or missing session");
     }
 
     console.log("Authenticated session:", session);
     return json({ apiKey: process.env.SHOPIFY_API_KEY || "" });
   } catch (error) {
-    console.error("Error in app loader:", error.message);
-    return redirect(`/error?message=${encodeURIComponent(error.message)}`);
+    // Logs detallados sobre el error
+    console.error("Error in app loader:", error);
+
+    // Manejar errores con mensaje desconocido
+    const errorMessage = error?.message || "Unknown error occurred during authentication.";
+    return redirect(`/error?message=${encodeURIComponent(errorMessage)}`);
   }
 };
 
