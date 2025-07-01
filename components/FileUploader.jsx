@@ -101,21 +101,19 @@ export default function FileUploader({ shopifyApiKey }) {
     };
   
     return (
-      <Frame>
-        <Page>
-          <Layout>
-            <Layout.Section>
-              <Card sectioned>
-                <DropZone accept=".csv" onDrop={handleDrop}>
-                  <DropZone.FileUpload actionTitle="Update JPaul Report" />
-                </DropZone>
-              </Card>
-            </Layout.Section>
-          </Layout>
-          {toastMessage && (
-            <Toast content={toastMessage} onDismiss={() => setToastMessage(null)} />
-          )}
-        </Page>
-      </Frame>
+      <Page>
+        <Layout>
+          <Layout.Section>
+            <Card sectioned>
+              <DropZone accept=".csv" onDrop={handleDrop}>
+                <DropZone.FileUpload actionTitle="Update JPaul Report" />
+              </DropZone>
+            </Card>
+          </Layout.Section>
+        </Layout>
+        {toastMessage && (
+          <Toast content={toastMessage} onDismiss={() => setToastMessage(null)} />
+        )}
+      </Page>
     );
   }
