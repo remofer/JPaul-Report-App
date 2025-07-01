@@ -34,6 +34,7 @@ function FileUploader() {
         const app = createApp({
           apiKey: process.env.SHOPIFY_API_KEY,
           host,
+          forceRedirect: true,
         });
 
         const token = await getSessionToken(app);
