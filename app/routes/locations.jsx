@@ -4,9 +4,6 @@ export const loader = async ({ request }) => {
   const shop = process.env.SHOPIFY_SHOP;
   const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
 
-  console.log("SHOPIFY_SHOP:", shop);
-  console.log("SHOPIFY_ACCESS_TOKEN:", accessToken);
-
   try {
     const authHeader = request.headers.get("Authorization");
     if (!authHeader) {
@@ -14,8 +11,6 @@ export const loader = async ({ request }) => {
     }
 
     const sessionToken = authHeader.replace("Bearer ", "");
-    console.log("Session Token Received:", sessionToken);
-
     const response = await fetch(`https://${shop}/admin/api/2023-01/locations.json`, {
       headers: {
         "Content-Type": "application/json",

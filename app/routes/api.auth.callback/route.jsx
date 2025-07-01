@@ -1,20 +1,18 @@
 import { json } from "@remix-run/node";
 
 export async function loader() {
-  return json({ message: "Método GET no soportado" }, { status: 405 });
+  return json({ message: "GET method not supported" }, { status: 405 });
 }
 
 export async function action({ request }) {
   try {
     const body = await request.json();
-    console.log("Datos recibidos en API callback:", body);
-
-    // Procesa los datos según sea necesario
+    console.log("Data received in API callback:", body);
 
     return json({ success: true });
   } catch (error) {
-    console.error("Error en API callback:", error);
-    return json({ error: "Error procesando el callback" }, { status: 500 });
+    console.error("Error in API callback:", error);
+    return json({ error: "Error processing callback" }, { status: 500 });
   }
 }
 

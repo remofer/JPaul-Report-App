@@ -9,12 +9,10 @@ export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 
 export const loader = async ({ request }) => {
   try {
-    console.log('App loader - authenticating...');
     const { session, redirect: redirectTo } = await authenticate.admin(request);
 
     if (redirectTo) {
-      console.log('Redirecting to:', redirectTo);
-      return redirect(redirectTo); // Redirige si es necesario
+      return redirect(redirectTo);
     }
 
     if (!session || !session.shop) {
@@ -22,7 +20,6 @@ export const loader = async ({ request }) => {
       throw new Error('Invalid or missing session');
     }
 
-    console.log('Authenticated session:', session);
     return new Response('Session validated successfully');
   } catch (error) {
     console.error('Error in app loader:', error);

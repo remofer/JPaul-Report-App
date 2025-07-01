@@ -5,12 +5,12 @@ const shopify = shopifyApi({
   apiKey: process.env.SHOPIFY_API_KEY,
   apiSecretKey: process.env.SHOPIFY_API_SECRET,
   scopes: ["write_inventory, read_inventory, read_locations, read_products"],
-  hostName: process.env.HOST || "your-app-hostname",
+  hostName: process.env.HOST || "",
   apiVersion: LATEST_API_VERSION,
 });
 
 export async function loader({ request }) {
-  return json({ message: "GET no soportado" }, { status: 405 });
+  return json({ message: "GET not supported" }, { status: 405 });
 }
 
 export async function action({ request }) {
@@ -20,18 +20,16 @@ export async function action({ request }) {
   const hmac = url.searchParams.get("hmac");
 
   if (!shop || !code || !hmac) {
-    return json({ error: "Parámetros inválidos" }, { status: 400 });
+    return json({ error: "Invalid parameters" }, { status: 400 });
   }
 
   try {
-    // Verifica el HMAC para la seguridad
     const isValid = shopify.utils.validateHmac(hmac, process.env.SHOPIFY_API_SECRET, url.searchParams);
 
     if (!isValid) {
-      return json({ error: "HMAC inválido" }, { status: 400 });
+      return json({ error: "Invalid HMAC" }, { status: 400 });
     }
 
-    // Intercambia el código por un token de acceso
     const response = await fetch(`https://${shop}/admin/oauth/access_token`, {
       method: "POST",
       headers: {
@@ -45,25 +43,20 @@ export async function action({ request }) {
     });
 
     if (!response.ok) {
-      throw new Error("Error obteniendo token de acceso");
+      throw new Error("Error obtaining access token");
     }
 
     const data = await response.json();
     const accessToken = data.access_token;
+    console.log(`Access Token for ${shop}:`, accessToken);
 
-    console.log(`Access Token para ${shop}:`, accessToken);
-
-    // Almacena el token de acceso según sea necesario
-    // Por ejemplo, en tu base de datos o en un sistema de sesiones
-
-    // Redirige al usuario a la página principal de tu app
     return redirect(`/app?shop=${shop}`);
   } catch (error) {
-    console.error("Error en auth.callback:", error);
-    return json({ error: "Error procesando la autenticación" }, { status: 500 });
+    console.error("Error in auth.callback:", error);
+    return json({ error: "Error processing authentication" }, { status: 500 });
   }
 }
 
 export default function AuthCallback() {
-  return <div>Procesando autenticación...</div>;
+  return <div>Processing authentication...</div>;
 }

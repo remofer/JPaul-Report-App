@@ -4,7 +4,6 @@ import jwt from "jsonwebtoken";
 export const validateToken = (token) => {
   try {
     const decoded = jwt.verify(token, process.env.SHOPIFY_API_SECRET_KEY);
-    console.log('Decoded Token:', decoded);
     return decoded;
   } catch (error) {
     console.error('Invalid Token:', error);
@@ -26,8 +25,6 @@ export async function loader({ request }) {
   try {
     const token = authHeader.replace("Bearer ", "");
     const decoded = jwt.verify(token, process.env.SHOPIFY_API_SECRET_KEY);
-
-    console.log("Decoded token:", decoded);
 
     if (!decoded || !decoded.dest) {
       throw new Error("Invalid token");

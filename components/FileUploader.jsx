@@ -22,7 +22,6 @@ export default function FileUploader({ shopifyApiKey }) {
   
           const token = await getSessionToken(app);
           setSessionToken(token);
-          console.log("Session Token initialized:", token);
         } catch (error) {
           console.error("Error initializing App Bridge:", error.message);
           setToastMessage("Error initializing authentication.");
