@@ -1,4 +1,3 @@
-// components/FileUploader.jsx
 import React, { useState, useEffect } from "react";
 import { Card, DropZone, Toast, Frame, Page, Layout } from "@shopify/polaris";
 import createApp from "@shopify/app-bridge";
@@ -16,7 +15,7 @@ export default function FileUploader({ shopifyApiKey }) {
           if (!host) throw new Error("Host parameter is missing.");
   
           const app = createApp({
-            apiKey: shopifyApiKey, // Usa la clave API pasada desde el servidor
+            apiKey: shopifyApiKey,
             host,
             forceRedirect: true,
           });
@@ -103,7 +102,7 @@ export default function FileUploader({ shopifyApiKey }) {
   
     return (
       <Frame>
-        <Page title="Update Inventory">
+        <Page>
           <Layout>
             <Layout.Section>
               <Card sectioned>

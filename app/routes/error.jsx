@@ -2,8 +2,6 @@ import { useRouteError, useSearchParams } from "@remix-run/react";
 
 export function ErrorBoundary() {
     const error = useRouteError();
-  
-    // Filtrar las variables de entorno permitidas
     const safeEnv = Object.keys(process.env)
       .filter((key) => key.startsWith("SHOPIFY_") || key === "NODE_ENV")
       .reduce((env, key) => {

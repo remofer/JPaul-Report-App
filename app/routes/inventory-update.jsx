@@ -68,7 +68,6 @@ export const action = async ({ request }) => {
     const shop = process.env.SHOPIFY_SHOP;
     const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
 
-    // Fetch locations and products in parallel
     const [locations, products] = await Promise.all([
       fetchLocations(shop, accessToken),
       fetchProducts(shop, accessToken),
@@ -109,7 +108,6 @@ export const action = async ({ request }) => {
       { updates: [], errors: [] }
     );
 
-    // Wait for all updates to complete
     await Promise.all(updates);
 
     return json({ success: true, errors });
