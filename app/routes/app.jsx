@@ -10,12 +10,13 @@ export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 export const loader = async ({ request }) => {
   try {
     console.log("App loader - authenticating...");
+    console.log("Incoming request URL:", request.url);
+    console.log("Incoming headers:", Object.fromEntries(request.headers));
 
-    // Intentar autenticar al administrador
     const { session, redirect: redirectTo } = await authenticate.admin(request);
 
     if (redirectTo) {
-      console.log("Redirect required:", redirectTo);
+      console.log("Redirecting to:", redirectTo);
       return redirect(redirectTo);
     }
 
@@ -27,10 +28,7 @@ export const loader = async ({ request }) => {
     console.log("Authenticated session:", session);
     return json({ apiKey: process.env.SHOPIFY_API_KEY || "" });
   } catch (error) {
-    // Logs detallados sobre el error
     console.error("Error in app loader:", error);
-
-    // Manejar errores con mensaje desconocido
     const errorMessage = error?.message || "Unknown error occurred during authentication.";
     return redirect(`/error?message=${encodeURIComponent(errorMessage)}`);
   }
