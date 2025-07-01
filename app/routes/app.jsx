@@ -9,28 +9,24 @@ export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 
 export const loader = async ({ request }) => {
   try {
-    console.log("App loader - authenticating...");
-    console.log("Incoming request URL:", request.url);
-    console.log("Incoming headers:", Object.fromEntries(request.headers));
-
+    console.log('App loader - authenticating...');
     const { session, redirect: redirectTo } = await authenticate.admin(request);
 
     if (redirectTo) {
-      console.log("Redirecting to:", redirectTo);
-      return redirect(redirectTo);
+      console.log('Redirecting to:', redirectTo);
+      return redirect(redirectTo); // Redirige si es necesario
     }
 
     if (!session || !session.shop) {
-      console.error("Session is invalid or missing:", session);
-      throw new Error("Invalid or missing session");
+      console.error('Session is invalid or missing:', session);
+      throw new Error('Invalid or missing session');
     }
 
-    console.log("Authenticated session:", session);
-    return json({ apiKey: process.env.SHOPIFY_API_KEY || "" });
+    console.log('Authenticated session:', session);
+    return new Response('Session validated successfully');
   } catch (error) {
-    console.error("Error in app loader:", error);
-    const errorMessage = error?.message || "Unknown error occurred during authentication.";
-    return redirect(`/error?message=${encodeURIComponent(errorMessage)}`);
+    console.error('Error in app loader:', error);
+    return new Response('Failed to authenticate', { status: 401 });
   }
 };
 

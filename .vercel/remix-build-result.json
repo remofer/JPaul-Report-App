@@ -15,6 +15,7 @@
       "routes/inventory-update": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
       "routes/locations": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
       "routes/_index": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/error": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
       "routes/auth": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
       "routes/auth.shopify.callback": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
       "routes/auth.session-token": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
@@ -71,6 +72,15 @@
         "parentId": "root",
         "file": "app/routes/_index/route.jsx",
         "index": true,
+        "config": {
+          "runtime": "nodejs"
+        }
+      },
+      "routes/error": {
+        "id": "routes/error",
+        "parentId": "root",
+        "file": "app/routes/error.jsx",
+        "path": "error",
         "config": {
           "runtime": "nodejs"
         }
@@ -187,6 +197,12 @@
         "parentId": "root",
         "file": "routes/_index/route.jsx",
         "index": true
+      },
+      "routes/error": {
+        "id": "routes/error",
+        "parentId": "root",
+        "file": "routes/error.jsx",
+        "path": "error"
       },
       "routes/auth": {
         "id": "routes/auth",

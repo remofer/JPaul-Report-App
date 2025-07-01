@@ -1,6 +1,17 @@
 import { json } from "@remix-run/node";
 import jwt from "jsonwebtoken";
 
+export const validateToken = (token) => {
+  try {
+    const decoded = jwt.verify(token, process.env.SHOPIFY_API_SECRET_KEY);
+    console.log('Decoded Token:', decoded);
+    return decoded;
+  } catch (error) {
+    console.error('Invalid Token:', error);
+    throw new Error('Invalid session token');
+  }
+};
+
 export async function loader({ request }) {
   const authHeader = request.headers.get("Authorization");
 
