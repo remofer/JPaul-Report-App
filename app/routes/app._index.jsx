@@ -43,7 +43,8 @@ function FileUploader() {
         console.log("Session Token initialized:", token);
       } catch (error) {
         console.error("Error initializing App Bridge:", error.message);
-        setToastMessage("Error initializing authentication.");
+        setToastMessage(process.env.SHOPIFY_API_KEY,"XDDDD")
+        // setToastMessage("Error initializing authentication.");
       }
     };
 
