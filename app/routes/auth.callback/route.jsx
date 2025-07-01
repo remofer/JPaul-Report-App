@@ -1,5 +1,13 @@
 import { json, redirect } from "@remix-run/node";
-import { Shopify } from "@shopify/shopify-api";
+import { shopifyApi, LATEST_API_VERSION } from "@shopify/shopify-api";
+
+const shopify = shopifyApi({
+  apiKey: process.env.SHOPIFY_API_KEY,
+  apiSecretKey: process.env.SHOPIFY_API_SECRET,
+  scopes: ["write_inventory, read_inventory, read_locations, read_products"],
+  hostName: process.env.HOST || "your-app-hostname",
+  apiVersion: LATEST_API_VERSION,
+});
 
 export async function loader({ request }) {
   return json({ message: "GET no soportado" }, { status: 405 });
@@ -17,7 +25,7 @@ export async function action({ request }) {
 
   try {
     // Verifica el HMAC para la seguridad
-    const isValid = Shopify.Utils.validateHmac(hmac, process.env.SHOPIFY_API_SECRET, url.searchParams);
+    const isValid = shopify.utils.validateHmac(hmac, process.env.SHOPIFY_API_SECRET, url.searchParams);
 
     if (!isValid) {
       return json({ error: "HMAC inválido" }, { status: 400 });
