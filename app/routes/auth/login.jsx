@@ -1,0 +1,74 @@
+import { json, redirect } from "@remix-run/node";
+import { useState } from "react";
+import { useActionData } from "@remix-run/react";
+import {
+  AppProvider as PolarisAppProvider,
+  Button,
+  Card,
+  FormLayout,
+  Page,
+  Text,
+  TextField,
+} from "@shopify/polaris";
+import polarisTranslations from "@shopify/polaris/locales/en.json";
+import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
+
+export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
+
+export const action = async ({ request }) => {
+  const formData = await request.formData();
+  const shop = formData.get("shop");
+
+  const isValidShop = (shop) => /^[a-zA-Z0-9][a-zA-Z0-9-]*\.myshopify\.com$/.test(shop);
+
+  if (!shop || !isValidShop(shop)) {
+    return json(
+      { errors: { shop: "Invalid shop domain. It must end with .myshopify.com" } },
+      { status: 400 }
+    );
+  }
+
+  try {
+    const host =
+      process.env.HOST || `${request.headers.get("x-forwarded-proto") || "http"}://${request.headers.get("host")}`;
+    const shopUrl = new URL(`/auth?shop=${shop}`, host);
+    return redirect(shopUrl.toString());
+  } catch (error) {
+    console.error("Authentication error:", error);
+    return json(
+      { errors: { shop: "An error occurred during authentication." } },
+      { status: 500 }
+    );
+  }
+};
+
+export default function Auth() {
+  const actionData = useActionData();
+  const [shop, setShop] = useState("");
+
+  return (
+    <PolarisAppProvider i18n={polarisTranslations}>
+      <Page>
+        <Card>
+          <form method="post" action="/auth/login">
+            <FormLayout>
+              <Text variant="headingMd" as="h2">
+                Log in
+              </Text>
+              <TextField
+                type="text"
+                name="shop"
+                label="Shop domain"
+                helpText="example.myshopify.com"
+                value={shop}
+                onChange={setShop}
+                error={actionData?.errors?.shop}
+              />
+              <Button submit>Log in</Button>
+            </FormLayout>
+          </form>
+        </Card>
+      </Page>
+    </PolarisAppProvider>
+  );
+}
